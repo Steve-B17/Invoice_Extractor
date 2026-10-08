@@ -1,11 +1,12 @@
 from fastapi import FastAPI
 from fastapi.responses import RedirectResponse
 
-from app.routers import auth
+from app.routers import auth, invoices
 
 app = FastAPI(title="Invoice Extractor API")
 
 app.include_router(auth.router)
+app.include_router(invoices.router)
 
 
 @app.get("/", include_in_schema=False)
