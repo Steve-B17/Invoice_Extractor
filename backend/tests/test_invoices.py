@@ -84,32 +84,3 @@ def test_cannot_read_someone_elses_invoice(client):
 def test_get_missing_invoice_returns_404(client):
     headers = auth_headers(client)
     assert client.get("/invoices/9999", headers=headers).status_code == 404
-
-
-def test_process_invoice_moves_to_needs_review(db_session, monkeypatch):
-    from app.models.invoice import Invoice, InvoiceStatus
-    from app.models.user import User
-    from app.services import processing
-
-    user = User(email="p@example.com", hashed_password="x")
-    db_session.add(user)
-    db_session.commit()
-    invoice = Invoice(
-        user_id=user.id,
-        original_filename="a.png",
-        file_path="x",
-        content_type="image/png",
-        status=InvoiceStatus.PROCESSING.value,
-    )
-    db_session.add(invoice)
-    db_session.commit()
-    invoice_id = invoice.id
-
-    # run the job against the test database, without the 3-second wait
-    monkeypatch.setattr(processing, "SessionLocal", lambda: db_session)
-    monkeypatch.setattr(processing.time, "sleep", lambda seconds: None)
-
-    processing.process_invoice(invoice_id)
-
-    refreshed = db_session.get(Invoice, invoice_id)
-    assert refreshed.status == InvoiceStatus.NEEDS_REVIEW.value

@@ -10,3 +10,8 @@ PyJWT
 bcrypt
 pytest
 httpx
+pytesseract
+opencv-python-headless
+numpy
+pillow
+pymupdf

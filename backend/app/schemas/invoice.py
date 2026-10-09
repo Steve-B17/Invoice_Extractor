@@ -28,3 +28,7 @@ class InvoiceOut(BaseModel):
 
     created_at: datetime
     updated_at: datetime
+
+class InvoiceOcrOut(BaseModel):
+    raw_ocr_text: str | None = None
+    confidence: float | None = None

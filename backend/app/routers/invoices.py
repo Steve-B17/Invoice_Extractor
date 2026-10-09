@@ -1,4 +1,5 @@
 from pathlib import Path
+from app.schemas.invoice import InvoiceOcrOut, InvoiceOut
 
 from fastapi import (
     APIRouter,
@@ -89,3 +90,20 @@ def get_invoice(
         # 404 (not 403) so we don't reveal that someone else's invoice exists
         raise HTTPException(status_code=404, detail="Invoice not found")
     return invoice
+
+@router.get("/{invoice_id}/ocr", response_model=InvoiceOcrOut)
+def get_invoice_ocr(
+    invoice_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    invoice = db.scalar(
+        select(Invoice).where(
+            Invoice.id == invoice_id, Invoice.user_id == current_user.id
+        )
+    )
+    if invoice is None:
+        raise HTTPException(status_code=404, detail="Invoice not found")
+    return InvoiceOcrOut(
+        raw_ocr_text=invoice.raw_ocr_text, confidence=invoice.confidence
+    )
