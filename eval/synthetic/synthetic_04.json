@@ -1,0 +1,34 @@
+{
+  "vendor_name": "Kaveri Traders",
+  "gstin": "33RKXLG2525S1Z8",
+  "invoice_number": "INV-7543",
+  "invoice_date": "2026-06-11",
+  "line_items": [
+    {
+      "description": "PVC Pipe 1 inch",
+      "hsn": "3917",
+      "qty": 3,
+      "rate": "145.00",
+      "amount": "435.00"
+    },
+    {
+      "description": "Switch Board",
+      "hsn": "8536",
+      "qty": 1,
+      "rate": "310.00",
+      "amount": "310.00"
+    },
+    {
+      "description": "Copper Wire 90m",
+      "hsn": "8544",
+      "qty": 2,
+      "rate": "1980.00",
+      "amount": "3960.00"
+    }
+  ],
+  "subtotal": "4705.00",
+  "cgst": "423.45",
+  "sgst": "423.45",
+  "igst": null,
+  "total": "5551.90"
+}

@@ -1,0 +1,48 @@
+{
+  "vendor_name": "Kaveri Traders",
+  "gstin": "33JEYXX5413Z1Z8",
+  "invoice_number": "INV-6038",
+  "invoice_date": "2026-04-12",
+  "line_items": [
+    {
+      "description": "Ceiling Fan",
+      "hsn": "8414",
+      "qty": 6,
+      "rate": "2150.00",
+      "amount": "12900.00"
+    },
+    {
+      "description": "Tiles Box",
+      "hsn": "6908",
+      "qty": 3,
+      "rate": "1420.00",
+      "amount": "4260.00"
+    },
+    {
+      "description": "LED Bulb 9W",
+      "hsn": "8539",
+      "qty": 6,
+      "rate": "95.00",
+      "amount": "570.00"
+    },
+    {
+      "description": "Steel Hammer",
+      "hsn": "8205",
+      "qty": 5,
+      "rate": "260.00",
+      "amount": "1300.00"
+    },
+    {
+      "description": "PVC Pipe 1 inch",
+      "hsn": "3917",
+      "qty": 5,
+      "rate": "145.00",
+      "amount": "725.00"
+    }
+  ],
+  "subtotal": "19755.00",
+  "cgst": "1777.95",
+  "sgst": "1777.95",
+  "igst": null,
+  "total": "23310.90"
+}

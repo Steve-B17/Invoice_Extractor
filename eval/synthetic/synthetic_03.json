@@ -1,0 +1,41 @@
+{
+  "vendor_name": "Annai Electricals",
+  "gstin": "33JRSRB6524I1ZD",
+  "invoice_number": "INV-4598",
+  "invoice_date": "2026-03-25",
+  "line_items": [
+    {
+      "description": "Wall Putty 20kg",
+      "hsn": "3214",
+      "qty": 3,
+      "rate": "890.00",
+      "amount": "2670.00"
+    },
+    {
+      "description": "Paint Bucket 4L",
+      "hsn": "3208",
+      "qty": 4,
+      "rate": "1250.00",
+      "amount": "5000.00"
+    },
+    {
+      "description": "Steel Hammer",
+      "hsn": "8205",
+      "qty": 6,
+      "rate": "260.00",
+      "amount": "1560.00"
+    },
+    {
+      "description": "Tiles Box",
+      "hsn": "6908",
+      "qty": 3,
+      "rate": "1420.00",
+      "amount": "4260.00"
+    }
+  ],
+  "subtotal": "13490.00",
+  "cgst": "1214.10",
+  "sgst": "1214.10",
+  "igst": null,
+  "total": "15918.20"
+}

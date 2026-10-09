@@ -1,0 +1,48 @@
+{
+  "vendor_name": "Annai Electricals",
+  "gstin": "33PUSNZ3586L1Z7",
+  "invoice_number": "INV-4150",
+  "invoice_date": "2026-07-03",
+  "line_items": [
+    {
+      "description": "Copper Wire 90m",
+      "hsn": "8544",
+      "qty": 3,
+      "rate": "1980.00",
+      "amount": "5940.00"
+    },
+    {
+      "description": "Switch Board",
+      "hsn": "8536",
+      "qty": 1,
+      "rate": "310.00",
+      "amount": "310.00"
+    },
+    {
+      "description": "Ceiling Fan",
+      "hsn": "8414",
+      "qty": 1,
+      "rate": "2150.00",
+      "amount": "2150.00"
+    },
+    {
+      "description": "Wall Putty 20kg",
+      "hsn": "3214",
+      "qty": 4,
+      "rate": "890.00",
+      "amount": "3560.00"
+    },
+    {
+      "description": "Steel Hammer",
+      "hsn": "8205",
+      "qty": 1,
+      "rate": "260.00",
+      "amount": "260.00"
+    }
+  ],
+  "subtotal": "12220.00",
+  "cgst": "1099.80",
+  "sgst": "1099.80",
+  "igst": null,
+  "total": "14419.60"
+}

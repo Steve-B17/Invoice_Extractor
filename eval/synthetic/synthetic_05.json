@@ -1,0 +1,41 @@
+{
+  "vendor_name": "Lakshmi Building Materials",
+  "gstin": "33JZNZW0765I1Z2",
+  "invoice_number": "INV-6573",
+  "invoice_date": "2026-02-02",
+  "line_items": [
+    {
+      "description": "Wall Putty 20kg",
+      "hsn": "3214",
+      "qty": 6,
+      "rate": "890.00",
+      "amount": "5340.00"
+    },
+    {
+      "description": "PVC Pipe 1 inch",
+      "hsn": "3917",
+      "qty": 2,
+      "rate": "145.00",
+      "amount": "290.00"
+    },
+    {
+      "description": "Steel Hammer",
+      "hsn": "8205",
+      "qty": 6,
+      "rate": "260.00",
+      "amount": "1560.00"
+    },
+    {
+      "description": "Door Lock",
+      "hsn": "8301",
+      "qty": 4,
+      "rate": "575.00",
+      "amount": "2300.00"
+    }
+  ],
+  "subtotal": "9490.00",
+  "cgst": "854.10",
+  "sgst": "854.10",
+  "igst": null,
+  "total": "11198.20"
+}

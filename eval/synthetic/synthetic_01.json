@@ -1,0 +1,48 @@
+{
+  "vendor_name": "Vel Agencies",
+  "gstin": "33KAFNA1652S1ZI",
+  "invoice_number": "INV-5557",
+  "invoice_date": "2026-02-14",
+  "line_items": [
+    {
+      "description": "Wall Putty 20kg",
+      "hsn": "3214",
+      "qty": 2,
+      "rate": "890.00",
+      "amount": "1780.00"
+    },
+    {
+      "description": "PVC Pipe 1 inch",
+      "hsn": "3917",
+      "qty": 6,
+      "rate": "145.00",
+      "amount": "870.00"
+    },
+    {
+      "description": "Ceiling Fan",
+      "hsn": "8414",
+      "qty": 1,
+      "rate": "2150.00",
+      "amount": "2150.00"
+    },
+    {
+      "description": "Steel Hammer",
+      "hsn": "8205",
+      "qty": 6,
+      "rate": "260.00",
+      "amount": "1560.00"
+    },
+    {
+      "description": "Copper Wire 90m",
+      "hsn": "8544",
+      "qty": 6,
+      "rate": "1980.00",
+      "amount": "11880.00"
+    }
+  ],
+  "subtotal": "18240.00",
+  "cgst": "1641.60",
+  "sgst": "1641.60",
+  "igst": null,
+  "total": "21523.20"
+}
