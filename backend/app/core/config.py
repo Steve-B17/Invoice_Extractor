@@ -14,6 +14,13 @@ class Settings(BaseSettings):
     ocr_psm: int = 6
     max_pdf_pages: int = 3
 
+    # LLM (any OpenAI-compatible chat completions endpoint)
+    llm_base_url: str | None = None
+    llm_api_key: str | None = None
+    llm_model: str | None = None
+    llm_json_mode: bool = True
+    llm_timeout_seconds: int = 60
+
     model_config = SettingsConfigDict(env_file=".env")
 
 

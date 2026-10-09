@@ -6,6 +6,18 @@ from pydantic import BaseModel, ConfigDict
 from app.models.invoice import InvoiceStatus
 
 
+class LineItemOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    position: int
+    description: str | None = None
+    hsn_code: str | None = None
+    quantity: Decimal | None = None
+    rate: Decimal | None = None
+    amount: Decimal | None = None
+
+
 class InvoiceOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -24,10 +36,13 @@ class InvoiceOut(BaseModel):
     cgst: Decimal | None = None
     sgst: Decimal | None = None
     igst: Decimal | None = None
+    round_off: Decimal | None = None
     total: Decimal | None = None
+    line_items: list[LineItemOut] = []
 
     created_at: datetime
     updated_at: datetime
+
 
 class InvoiceOcrOut(BaseModel):
     raw_ocr_text: str | None = None

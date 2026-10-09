@@ -1,5 +1,4 @@
 from pathlib import Path
-from app.schemas.invoice import InvoiceOcrOut, InvoiceOut
 
 from fastapi import (
     APIRouter,
@@ -12,16 +11,28 @@ from fastapi import (
     status,
 )
 from sqlalchemy import select
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 
 from app.deps import get_current_user, get_db
 from app.models.invoice import Invoice, InvoiceStatus
 from app.models.user import User
-from app.schemas.invoice import InvoiceOut
+from app.schemas.invoice import InvoiceOcrOut, InvoiceOut
 from app.services.processing import process_invoice
 from app.services.storage import save_upload
 
 router = APIRouter(prefix="/invoices", tags=["invoices"])
+
+
+def _owned_invoice(db: Session, invoice_id: int, user: User) -> Invoice:
+    invoice = db.scalar(
+        select(Invoice)
+        .options(selectinload(Invoice.line_items))
+        .where(Invoice.id == invoice_id, Invoice.user_id == user.id)
+    )
+    if invoice is None:
+        # 404 (not 403) so we don't reveal that someone else's invoice exists
+        raise HTTPException(status_code=404, detail="Invoice not found")
+    return invoice
 
 
 @router.post("", response_model=InvoiceOut, status_code=status.HTTP_202_ACCEPTED)
@@ -64,7 +75,11 @@ def list_invoices(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    stmt = select(Invoice).where(Invoice.user_id == current_user.id)
+    stmt = (
+        select(Invoice)
+        .options(selectinload(Invoice.line_items))
+        .where(Invoice.user_id == current_user.id)
+    )
     if status_filter is not None:
         stmt = stmt.where(Invoice.status == status_filter.value)
     stmt = (
@@ -81,15 +96,8 @@ def get_invoice(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    invoice = db.scalar(
-        select(Invoice).where(
-            Invoice.id == invoice_id, Invoice.user_id == current_user.id
-        )
-    )
-    if invoice is None:
-        # 404 (not 403) so we don't reveal that someone else's invoice exists
-        raise HTTPException(status_code=404, detail="Invoice not found")
-    return invoice
+    return _owned_invoice(db, invoice_id, current_user)
+
 
 @router.get("/{invoice_id}/ocr", response_model=InvoiceOcrOut)
 def get_invoice_ocr(
@@ -97,13 +105,37 @@ def get_invoice_ocr(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    invoice = db.scalar(
-        select(Invoice).where(
-            Invoice.id == invoice_id, Invoice.user_id == current_user.id
-        )
-    )
-    if invoice is None:
-        raise HTTPException(status_code=404, detail="Invoice not found")
+    invoice = _owned_invoice(db, invoice_id, current_user)
     return InvoiceOcrOut(
         raw_ocr_text=invoice.raw_ocr_text, confidence=invoice.confidence
     )
+
+
+@router.post(
+    "/{invoice_id}/reprocess",
+    response_model=InvoiceOut,
+    status_code=status.HTTP_202_ACCEPTED,
+)
+def reprocess_invoice(
+    invoice_id: int,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Run OCR and extraction again on the stored file (for example after
+    tuning the prompt or fixing the LLM settings)."""
+    invoice = _owned_invoice(db, invoice_id, current_user)
+    if invoice.status == InvoiceStatus.PROCESSING.value:
+        raise HTTPException(status_code=409, detail="Invoice is already being processed")
+    if invoice.status == InvoiceStatus.VERIFIED.value:
+        raise HTTPException(
+            status_code=409, detail="Verified invoices cannot be reprocessed"
+        )
+
+    invoice.status = InvoiceStatus.PROCESSING.value
+    invoice.error_message = None
+    db.commit()
+    db.refresh(invoice)
+
+    background_tasks.add_task(process_invoice, invoice.id)
+    return invoice

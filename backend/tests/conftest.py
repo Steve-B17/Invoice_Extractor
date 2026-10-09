@@ -20,9 +20,13 @@ TestingSession = sessionmaker(bind=engine, autoflush=False, autocommit=False)
 
 @pytest.fixture(autouse=True)
 def isolate_side_effects(monkeypatch, tmp_path):
-    """Every test: save uploads to a temp folder and skip the real background job
-    (which would otherwise open a connection to your Neon database)."""
+    """Every test: save uploads to a temp folder, skip the real background job
+    (which would otherwise open a connection to your Neon database), and make
+    sure no test can reach a real LLM."""
     monkeypatch.setattr(settings, "upload_dir", str(tmp_path / "uploads"))
+    monkeypatch.setattr(settings, "llm_base_url", None)
+    monkeypatch.setattr(settings, "llm_api_key", None)
+    monkeypatch.setattr(settings, "llm_model", None)
     monkeypatch.setattr(
         "app.routers.invoices.process_invoice", lambda invoice_id: None
     )
