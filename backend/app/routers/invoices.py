@@ -14,19 +14,26 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
 
 from app.deps import get_current_user, get_db
-from app.models.invoice import Invoice, InvoiceStatus
+from app.models.invoice import Invoice, InvoiceStatus, LineItem
 from app.models.user import User
-from app.schemas.invoice import InvoiceOcrOut, InvoiceOut
+from app.schemas.invoice import InvoiceOcrOut, InvoiceOut, InvoiceUpdate
 from app.services.processing import process_invoice
+from app.services.review import revalidate
 from app.services.storage import save_upload
+from app.services.validation import ERROR
 
 router = APIRouter(prefix="/invoices", tags=["invoices"])
+
+EDITABLE_FIELDS = (
+    "vendor_name", "gstin", "invoice_number", "invoice_date",
+    "subtotal", "cgst", "sgst", "igst", "round_off", "total",
+)
 
 
 def _owned_invoice(db: Session, invoice_id: int, user: User) -> Invoice:
     invoice = db.scalar(
         select(Invoice)
-        .options(selectinload(Invoice.line_items))
+        .options(selectinload(Invoice.line_items), selectinload(Invoice.flags))
         .where(Invoice.id == invoice_id, Invoice.user_id == user.id)
     )
     if invoice is None:
@@ -77,7 +84,7 @@ def list_invoices(
 ):
     stmt = (
         select(Invoice)
-        .options(selectinload(Invoice.line_items))
+        .options(selectinload(Invoice.line_items), selectinload(Invoice.flags))
         .where(Invoice.user_id == current_user.id)
     )
     if status_filter is not None:
@@ -111,6 +118,71 @@ def get_invoice_ocr(
     )
 
 
+@router.patch("/{invoice_id}", response_model=InvoiceOut)
+def update_invoice(
+    invoice_id: int,
+    payload: InvoiceUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Correct extracted fields. Flags are recomputed after every change."""
+    invoice = _owned_invoice(db, invoice_id, current_user)
+    if invoice.status == InvoiceStatus.PROCESSING.value:
+        raise HTTPException(status_code=409, detail="Invoice is still being processed")
+    if invoice.status == InvoiceStatus.VERIFIED.value:
+        raise HTTPException(status_code=409, detail="Verified invoices are locked")
+
+    for name in EDITABLE_FIELDS:
+        if name in payload.model_fields_set:
+            setattr(invoice, name, getattr(payload, name))
+
+    if payload.line_items is not None:
+        invoice.line_items.clear()
+        for position, item in enumerate(payload.line_items):
+            invoice.line_items.append(LineItem(position=position, **item.model_dump()))
+
+    if invoice.status == InvoiceStatus.FAILED.value:
+        # manual entry rescues an invoice whose OCR failed
+        invoice.status = InvoiceStatus.NEEDS_REVIEW.value
+        invoice.error_message = None
+
+    revalidate(invoice)
+    db.commit()
+    db.refresh(invoice)
+    return invoice
+
+
+@router.post("/{invoice_id}/verify", response_model=InvoiceOut)
+def verify_invoice(
+    invoice_id: int,
+    force: bool = Query(default=False),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Mark an invoice as checked by a human. Refused while validation errors remain,
+    unless force=true (the person checked the bill and the validators are wrong)."""
+    invoice = _owned_invoice(db, invoice_id, current_user)
+    if invoice.status != InvoiceStatus.NEEDS_REVIEW.value:
+        raise HTTPException(
+            status_code=409, detail="Only invoices that are awaiting review can be verified"
+        )
+
+    errors = [flag for flag in invoice.flags if flag.severity == ERROR]
+    if errors and not force:
+        raise HTTPException(
+            status_code=409,
+            detail=(
+                f"{len(errors)} validation error(s) remain. Fix them, or verify with "
+                "force=true after checking the bill yourself."
+            ),
+        )
+
+    invoice.status = InvoiceStatus.VERIFIED.value
+    db.commit()
+    db.refresh(invoice)
+    return invoice
+
+
 @router.post(
     "/{invoice_id}/reprocess",
     response_model=InvoiceOut,
@@ -122,8 +194,7 @@ def reprocess_invoice(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """Run OCR and extraction again on the stored file (for example after
-    tuning the prompt or fixing the LLM settings)."""
+    """Run OCR and extraction again on the stored file. This replaces any edits."""
     invoice = _owned_invoice(db, invoice_id, current_user)
     if invoice.status == InvoiceStatus.PROCESSING.value:
         raise HTTPException(status_code=409, detail="Invoice is already being processed")

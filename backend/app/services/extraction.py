@@ -22,8 +22,8 @@ Rules:
 - cgst, sgst and igst are the tax AMOUNTS in rupees, not the percentages.
 - round_off is the rounding adjustment line. It may be negative.
 - line_items: one entry per purchased item row, in order. Skip header and total rows.
-
-Return exactly these keys:
+- Item descriptions: copy them in their original script. Tamil text stays Tamil. Do not translate or transliterate.
+- invoice_number: only the bill or invoice number itself (a short identifier such as "501" or "INV-2041"). Look next to labels such as "Bill No", "Invoice No", "Inv No" or "Receipt No". Never include the date, time or other words from the same line.- Each line item row has quantity, rate and amount, in that order. If one of them is unreadable, set only that one to null. Never move another number into its place.
 {
   "vendor_name": string or null,
   "gstin": string or null,

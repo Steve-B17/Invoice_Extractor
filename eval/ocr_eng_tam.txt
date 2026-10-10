@@ -1,0 +1,24 @@
+method=image_ocr  pages=1  confidence=0.64  time=3.5s
+------------------------------------------------------------
+α«ƒ α«å = ΓÇÿ α«₧α»ìΓÇî sy
+| KARTHIK MESS |
+Vadavalli- Thondamuthur Road |
+Near Marudhapa Mudhaliyar Complex |
+Vadavalli, Coimbatore α«ƒα«░α»ìΓÇî α«ƒα»ìΓÇî
+GSTIN:33BECPS1148N1ZB α«ƒα«░α»ìΓÇî α«¬
+Be ic eee tts ie os Vs id α«ñα«┐
+Bill No: 501 15-09-2026 08:18:43 PM PSE 4
+α«ñα«┐ | Item Qty Rate Amt α«░α»ìΓÇî
+| α«▓α»åα««α«⌐α»ìΓÇî α«Üα»çα«╡α»ê 3 47.62 142.86 R ΓÇ£4
+| α«çα«ƒα»ìα«▓α«┐ 4 1429 5716 α«ç
+| α«òα«╛α«│α«╛α«⌐α»ìΓÇî α«Üα»çα«╡α»ê > 76.19 152.38 ies 31
+Sub Total = Rs 352.40 αÑñ α»ìΓÇî
+CGST (2.5%) :85 881 124 wer
+> SGST (25%) :Rs 8.81 α«¿α«┐ α«Üα«ƒ
+Rounded Off <:Rs -0.02
+| α«╡α«╛ α«╡α«▓α«ò a ifs ws nv cesses
+se TOTAL :Rs 370.00 |
+pees α«¬α«╛α«░α»ìα«Üα«▓α»ìΓÇî | |
+α«╡α«╛α«┤α«ò α«╡α«│α««α»üα«ƒα«⌐α»ìΓÇî 4
+on:
+3 s ┬ó α«░ /

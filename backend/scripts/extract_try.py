@@ -13,6 +13,7 @@ from pathlib import Path
 
 from app.services.extraction import extract_invoice_fields
 from app.services.ocr import extract_text
+from app.services.validation import validate_invoice
 
 MIME_TYPES = {
     ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".png": "image/png",
@@ -65,6 +66,11 @@ def main() -> None:
     got = data.model_dump(mode="json")
     print(json.dumps(got, indent=2, ensure_ascii=False))
 
+    flags = validate_invoice(data, ocr_confidence=ocr.confidence)
+    print(f"\n=== Validation flags ({len(flags)}) ===")
+    for flag in flags:
+        print(f"[{flag.severity.upper():<7}] {flag.code:<24} {flag.field}: {flag.message}")
+    
     truth_path = find_truth(path)
     if truth_path is None:
         print("\n(no ground-truth JSON found next to the file, skipping comparison)")

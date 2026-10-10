@@ -1,0 +1,57 @@
+OCR: method=image_ocr confidence=0.91
+LLM: 1.7s
+
+{
+  "vendor_name": "KA RTHIK MESS",
+  "gstin": "33BECPS1148N1ZB",
+  "invoice_number": null,
+  "invoice_date": "2026-09-15",
+  "line_items": [
+    {
+      "description": "வ",
+      "hsn_code": null,
+      "quantity": "3.000",
+      "rate": "47.62",
+      "amount": "142.86"
+    },
+    {
+      "description": null,
+      "hsn_code": null,
+      "quantity": "4.000",
+      "rate": "14.29",
+      "amount": "57.16"
+    },
+    {
+      "description": "காளான்‌ சேவை",
+      "hsn_code": null,
+      "quantity": "7.000",
+      "rate": "76.19",
+      "amount": "152.38"
+    }
+  ],
+  "subtotal": "352.40",
+  "cgst": "8.81",
+  "sgst": "8.81",
+  "igst": null,
+  "round_off": "-0.02",
+  "total": "370.00"
+}
+
+=== Validation flags (2) ===
+[ERROR  ] LINE_ITEM_MATH           line_items.2: Item 3: 7.000 x 76.19 = Rs 533.33, but the amount is Rs 152.38.
+[WARNING] INVOICE_NUMBER_MISSING   invoice_number: No invoice number was found.
+
+=== Compared with bill.json ===
+MISS vendor_name     got=KA RTHIK MESS          want=KARTHIK MESS
+OK   gstin           got=33BECPS1148N1ZB        want=33BECPS1148N1ZB
+MISS invoice_number  got=None                   want=501
+OK   invoice_date    got=2026-09-15             want=2026-09-15
+OK   subtotal        got=352.40                 want=352.40
+OK   cgst            got=8.81                   want=8.81
+OK   sgst            got=8.81                   want=8.81
+OK   igst            got=None                   want=None
+OK   round_off       got=-0.02                  want=-0.02
+OK   total           got=370.00                 want=370.00
+
+8/10 fields match
+line items: got 3, expected 3

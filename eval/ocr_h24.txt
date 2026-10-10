@@ -1,0 +1,24 @@
+method=image_ocr  pages=1  confidence=0.86  time=2.2s
+------------------------------------------------------------
+ip
+3 ்‌ d = (44 ட்‌
+SS ஆஆ அத்த
+| KARTHIK MESS
+Vadavalli- Thondamuthur Road
+Near Marudhapa Mudhaliyar Complex
+Vadavalli, Coimbatore
+GSTIN:33BECPS1148N1ZB
+Bill No: 501 15-09-2026 08:18:43 PM
+Item Qty Rate Amt
+லெமன்‌ சேவை 3 47.62 142.86
+இட்லி 4 14.29 57.16
+காளான்‌ சேவை ன்‌ 76.19 152.38
+Sub Total :86 352.40
+CGST (2.5%) :Rs 8.81
+ல்ச்‌ 568 (25%) :ஈ௨ 8.81
+Rounded Off :Rs -0.02
+க கவடல ப TOTAL :Rs 370.00
+ee பார்சல்‌
+வாழ்க வளமுடன்‌ ;
+Pte. <<! ட்‌ ட
+pA waste

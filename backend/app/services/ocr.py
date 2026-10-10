@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from statistics import mean
+from statistics import mean, median
 
 import cv2
 import numpy as np
@@ -9,7 +9,7 @@ from PIL import Image, ImageOps
 from pytesseract import Output
 
 from app.core.config import settings
-from app.services.image_preprocess import preprocess
+from app.services.image_preprocess import crop_to_document, preprocess
 
 # Pillow raises an error above 2x this many pixels (decompression-bomb protection)
 Image.MAX_IMAGE_PIXELS = 50_000_000
@@ -33,16 +33,19 @@ class OcrResult:
     pages: int
 
 
-def load_image_gray(path: str) -> np.ndarray:
-    """Open an image, apply the phone's EXIF rotation, return a grayscale array."""
+def load_image_gray(path: str, *, crop: bool = True) -> np.ndarray:
+    """Open an image, apply the phone's EXIF rotation, optionally cut it down to the
+    paper, and return a grayscale array."""
     try:
         with Image.open(path) as img:
             img = ImageOps.exif_transpose(img)   # phone photos often store rotation here
-            rgb = img.convert("RGB")
-            return cv2.cvtColor(np.array(rgb), cv2.COLOR_RGB2GRAY)
+            rgb = np.array(img.convert("RGB"))
     except Exception as exc:
         raise OcrError("Could not open the image file") from exc
 
+    if crop:
+        rgb = crop_to_document(rgb)
+    return cv2.cvtColor(rgb, cv2.COLOR_RGB2GRAY)
 
 def ocr_gray(gray: np.ndarray, *, use_preprocess: bool = True) -> tuple[str, float | None]:
     image = preprocess(gray) if use_preprocess else gray
@@ -74,7 +77,7 @@ def ocr_gray(gray: np.ndarray, *, use_preprocess: bool = True) -> tuple[str, flo
         confidences.append(conf)
 
     text = "\n".join(" ".join(words) for _, words in sorted(lines.items()))
-    confidence = mean(confidences) / 100 if confidences else None
+    confidence = median(confidences) / 100 if confidences else None
     return text, confidence
 
 
@@ -124,6 +127,6 @@ def extract_text(path: str, content_type: str, *, use_preprocess: bool = True) -
     if content_type == "application/pdf":
         return _extract_from_pdf(path, use_preprocess)
 
-    gray = load_image_gray(path)
+    gray = load_image_gray(path, crop=use_preprocess)
     text, confidence = ocr_gray(gray, use_preprocess=use_preprocess)
     return OcrResult(text, confidence, "image_ocr", 1)

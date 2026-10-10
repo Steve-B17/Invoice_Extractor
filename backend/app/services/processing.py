@@ -6,8 +6,11 @@ from app.schemas.extraction import MAX_LINE_ITEMS, ExtractedInvoice
 from app.services.extraction import extract_invoice_fields
 from app.services.llm import LlmError
 from app.services.ocr import OcrError, extract_text
+from app.services.review import mark_extraction_failed, revalidate
 
 logger = logging.getLogger(__name__)
+
+EXTRACTION_FAILED_FLAG = "Automatic extraction failed, so every field must be filled in by hand."
 
 
 def apply_extraction(invoice: Invoice, data: ExtractedInvoice) -> None:
@@ -64,13 +67,17 @@ def process_invoice(invoice_id: int) -> None:
                 if data.is_empty():
                     raise LlmError("The AI found no invoice fields in the text")
                 apply_extraction(invoice, data)
+                revalidate(invoice)
             except LlmError as exc:
                 invoice.error_message = f"Automatic extraction failed: {exc}"[:500]
-            except Exception:
+                mark_extraction_failed(invoice, EXTRACTION_FAILED_FLAG)
+            except Exception as exc:
                 logger.exception("Extraction crashed for invoice %s", invoice_id)
-                invoice.error_message = "Automatic extraction failed unexpectedly"
+                invoice.error_message = (
+                    f"Automatic extraction failed unexpectedly ({type(exc).__name__})"
+                )
+                mark_extraction_failed(invoice, EXTRACTION_FAILED_FLAG)
 
-            # Day 5 adds validation here
             invoice.status = InvoiceStatus.NEEDS_REVIEW.value
         except OcrError as exc:
             invoice.status = InvoiceStatus.FAILED.value

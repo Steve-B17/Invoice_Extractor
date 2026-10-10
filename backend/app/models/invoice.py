@@ -73,6 +73,11 @@ class Invoice(Base):
         cascade="all, delete-orphan",
         order_by="LineItem.position",
     )
+    flags: Mapped[list["ValidationFlag"]] = relationship(
+        back_populates="invoice",
+        cascade="all, delete-orphan",
+        order_by="ValidationFlag.id",
+    )
 
 
 class LineItem(Base):
@@ -91,3 +96,18 @@ class LineItem(Base):
     amount: Mapped[Decimal | None] = mapped_column(Numeric(12, 2), nullable=True)
 
     invoice: Mapped["Invoice"] = relationship(back_populates="line_items")
+
+
+class ValidationFlag(Base):
+    __tablename__ = "validation_flags"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    invoice_id: Mapped[int] = mapped_column(
+        ForeignKey("invoices.id", ondelete="CASCADE"), index=True, nullable=False
+    )
+    field: Mapped[str] = mapped_column(String(60), nullable=False)
+    code: Mapped[str] = mapped_column(String(40), nullable=False)
+    severity: Mapped[str] = mapped_column(String(10), nullable=False)
+    message: Mapped[str] = mapped_column(String(500), nullable=False)
+
+    invoice: Mapped["Invoice"] = relationship(back_populates="flags")

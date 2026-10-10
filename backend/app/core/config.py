@@ -11,7 +11,7 @@ class Settings(BaseSettings):
     # OCR
     tesseract_cmd: str | None = None
     ocr_language: str = "eng"
-    ocr_psm: int = 6
+    ocr_psm: int = 4
     max_pdf_pages: int = 3
 
     # LLM (any OpenAI-compatible chat completions endpoint)

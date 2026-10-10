@@ -1,0 +1,23 @@
+method=image_ocr  pages=1  confidence=0.91  time=1.8s
+------------------------------------------------------------
+KA
+RTHIK MESS
+Vadavalli-Thondamuthur Road
+Near Marudhapa Mudhaliyar Complex
+Vadavalli, Coimbatore
+GSTIN:33BECPS1148N1ZB
+லெமன்‌ சேை
+இட்லி
+15-09-2026 08:18:43 PM
+வ 3 47.62 142.86
+4 14.29 57.16
+காளான்‌ சேவை 7) 76.19 152.38
+SubTotal =Rs 352.40
+CGST (2.5%) ‘Rs 8.81
+wy SGST (2.5%) ௩6 8.81
+Rounded Off :8% -0.02
+era TOTAL :Rs 370.00
+eset பார்சல்‌
+வாழ்க வளமுடன்‌ -*
+------------------------------------------------------------
+Saved cleaned image: ..\eval\bills\bill_preprocessed.png
