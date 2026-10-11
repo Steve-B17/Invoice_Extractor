@@ -1,0 +1,622 @@
+[
+  {
+    "name": "synthetic_01_clean.png",
+    "group": "synthetic-clean",
+    "ocr_confidence": 0.96,
+    "error": null,
+    "fields": {
+      "vendor_name": true,
+      "gstin": false,
+      "invoice_number": true,
+      "invoice_date": true,
+      "subtotal": true,
+      "cgst": true,
+      "sgst": true,
+      "igst": true,
+      "round_off": true,
+      "total": true
+    },
+    "items": {
+      "amount": [
+        1,
+        5
+      ],
+      "quantity": [
+        0,
+        0
+      ],
+      "rate": [
+        4,
+        5
+      ],
+      "description": [
+        5,
+        5
+      ]
+    },
+    "item_count_ok": true,
+    "flag_codes": [
+      "GSTIN_CHECKSUM",
+      "LINE_ITEM_MATH",
+      "LINE_ITEM_MATH",
+      "LINE_ITEM_MATH",
+      "LINE_ITEM_MATH",
+      "ITEMS_SUBTOTAL_MISMATCH"
+    ],
+    "flagged": true,
+    "flagged_error": true,
+    "numbers_wrong": true,
+    "skipped": false
+  },
+  {
+    "name": "synthetic_01_photo.jpg",
+    "group": "synthetic-photo",
+    "ocr_confidence": 0.78,
+    "error": null,
+    "fields": {
+      "vendor_name": false,
+      "gstin": false,
+      "invoice_number": false,
+      "invoice_date": false,
+      "subtotal": true,
+      "cgst": true,
+      "sgst": true,
+      "igst": true,
+      "round_off": true,
+      "total": true
+    },
+    "items": {
+      "amount": [
+        0,
+        5
+      ],
+      "quantity": [
+        0,
+        0
+      ],
+      "rate": [
+        0,
+        5
+      ],
+      "description": [
+        0,
+        5
+      ]
+    },
+    "item_count_ok": true,
+    "flag_codes": [
+      "INVOICE_NUMBER_MISSING",
+      "GSTIN_MISSING",
+      "DATE_MISSING",
+      "LINE_ITEM_INCOMPLETE",
+      "LINE_ITEM_INCOMPLETE",
+      "LINE_ITEM_INCOMPLETE",
+      "LINE_ITEM_INCOMPLETE",
+      "LINE_ITEM_INCOMPLETE",
+      "ITEM_AMOUNT_MISSING"
+    ],
+    "flagged": true,
+    "flagged_error": false,
+    "numbers_wrong": true,
+    "skipped": false
+  },
+  {
+    "name": "synthetic_02_clean.png",
+    "group": "synthetic-clean",
+    "ocr_confidence": 0.96,
+    "error": null,
+    "fields": {
+      "vendor_name": true,
+      "gstin": true,
+      "invoice_number": true,
+      "invoice_date": true,
+      "subtotal": true,
+      "cgst": true,
+      "sgst": true,
+      "igst": true,
+      "round_off": true,
+      "total": true
+    },
+    "items": {
+      "amount": [
+        2,
+        5
+      ],
+      "quantity": [
+        0,
+        0
+      ],
+      "rate": [
+        2,
+        5
+      ],
+      "description": [
+        5,
+        5
+      ]
+    },
+    "item_count_ok": true,
+    "flag_codes": [
+      "LINE_ITEM_MATH",
+      "LINE_ITEM_MATH",
+      "LINE_ITEM_MATH",
+      "ITEMS_SUBTOTAL_MISMATCH"
+    ],
+    "flagged": true,
+    "flagged_error": true,
+    "numbers_wrong": true,
+    "skipped": false
+  },
+  {
+    "name": "synthetic_02_photo.jpg",
+    "group": "synthetic-photo",
+    "ocr_confidence": 0.94,
+    "error": null,
+    "fields": {
+      "vendor_name": true,
+      "gstin": true,
+      "invoice_number": true,
+      "invoice_date": true,
+      "subtotal": false,
+      "cgst": false,
+      "sgst": false,
+      "igst": true,
+      "round_off": true,
+      "total": false
+    },
+    "items": {
+      "amount": [
+        0,
+        5
+      ],
+      "quantity": [
+        0,
+        0
+      ],
+      "rate": [
+        0,
+        5
+      ],
+      "description": [
+        5,
+        5
+      ]
+    },
+    "item_count_ok": true,
+    "flag_codes": [
+      "TOTAL_MISSING",
+      "ITEM_AMOUNT_MISSING"
+    ],
+    "flagged": true,
+    "flagged_error": true,
+    "numbers_wrong": true,
+    "skipped": false
+  },
+  {
+    "name": "synthetic_03_clean.png",
+    "group": "synthetic-clean",
+    "ocr_confidence": 0.96,
+    "error": null,
+    "fields": {
+      "vendor_name": true,
+      "gstin": false,
+      "invoice_number": true,
+      "invoice_date": true,
+      "subtotal": true,
+      "cgst": true,
+      "sgst": true,
+      "igst": true,
+      "round_off": true,
+      "total": true
+    },
+    "items": {
+      "amount": [
+        0,
+        4
+      ],
+      "quantity": [
+        0,
+        0
+      ],
+      "rate": [
+        2,
+        4
+      ],
+      "description": [
+        4,
+        4
+      ]
+    },
+    "item_count_ok": true,
+    "flag_codes": [
+      "GSTIN_FORMAT",
+      "LINE_ITEM_MATH",
+      "LINE_ITEM_MATH",
+      "LINE_ITEM_MATH",
+      "LINE_ITEM_MATH",
+      "ITEMS_SUBTOTAL_MISMATCH"
+    ],
+    "flagged": true,
+    "flagged_error": true,
+    "numbers_wrong": true,
+    "skipped": false
+  },
+  {
+    "name": "synthetic_03_photo.jpg",
+    "group": "synthetic-photo",
+    "ocr_confidence": 0.96,
+    "error": null,
+    "fields": {
+      "vendor_name": true,
+      "gstin": false,
+      "invoice_number": true,
+      "invoice_date": true,
+      "subtotal": true,
+      "cgst": true,
+      "sgst": true,
+      "igst": true,
+      "round_off": true,
+      "total": true
+    },
+    "items": {
+      "amount": [
+        0,
+        4
+      ],
+      "quantity": [
+        0,
+        0
+      ],
+      "rate": [
+        2,
+        4
+      ],
+      "description": [
+        4,
+        4
+      ]
+    },
+    "item_count_ok": true,
+    "flag_codes": [
+      "GSTIN_FORMAT",
+      "LINE_ITEM_MATH",
+      "LINE_ITEM_MATH",
+      "LINE_ITEM_MATH",
+      "LINE_ITEM_MATH",
+      "ITEMS_SUBTOTAL_MISMATCH"
+    ],
+    "flagged": true,
+    "flagged_error": true,
+    "numbers_wrong": true,
+    "skipped": false
+  },
+  {
+    "name": "synthetic_04_clean.png",
+    "group": "synthetic-clean",
+    "ocr_confidence": 0.96,
+    "error": null,
+    "fields": {
+      "vendor_name": true,
+      "gstin": true,
+      "invoice_number": true,
+      "invoice_date": true,
+      "subtotal": true,
+      "cgst": true,
+      "sgst": true,
+      "igst": true,
+      "round_off": true,
+      "total": true
+    },
+    "items": {
+      "amount": [
+        2,
+        3
+      ],
+      "quantity": [
+        0,
+        0
+      ],
+      "rate": [
+        2,
+        3
+      ],
+      "description": [
+        3,
+        3
+      ]
+    },
+    "item_count_ok": true,
+    "flag_codes": [
+      "LINE_ITEM_MATH",
+      "ITEMS_SUBTOTAL_MISMATCH"
+    ],
+    "flagged": true,
+    "flagged_error": true,
+    "numbers_wrong": true,
+    "skipped": false
+  },
+  {
+    "name": "synthetic_04_photo.jpg",
+    "group": "synthetic-photo",
+    "ocr_confidence": 0.96,
+    "error": "LLM: The AI service returned an error (HTTP 429)",
+    "fields": {
+      "vendor_name": false,
+      "gstin": false,
+      "invoice_number": false,
+      "invoice_date": false,
+      "subtotal": false,
+      "cgst": false,
+      "sgst": false,
+      "igst": true,
+      "round_off": true,
+      "total": false
+    },
+    "items": {
+      "amount": [
+        0,
+        3
+      ],
+      "quantity": [
+        0,
+        0
+      ],
+      "rate": [
+        0,
+        3
+      ],
+      "description": [
+        0,
+        3
+      ]
+    },
+    "item_count_ok": false,
+    "flag_codes": [
+      "TOTAL_MISSING",
+      "VENDOR_MISSING",
+      "INVOICE_NUMBER_MISSING",
+      "GSTIN_MISSING",
+      "DATE_MISSING",
+      "NO_LINE_ITEMS"
+    ],
+    "flagged": true,
+    "flagged_error": true,
+    "numbers_wrong": true,
+    "skipped": true
+  },
+  {
+    "name": "synthetic_05_clean.png",
+    "group": "synthetic-clean",
+    "ocr_confidence": 0.96,
+    "error": null,
+    "fields": {
+      "vendor_name": true,
+      "gstin": false,
+      "invoice_number": true,
+      "invoice_date": true,
+      "subtotal": true,
+      "cgst": true,
+      "sgst": true,
+      "igst": true,
+      "round_off": true,
+      "total": true
+    },
+    "items": {
+      "amount": [
+        0,
+        4
+      ],
+      "quantity": [
+        0,
+        0
+      ],
+      "rate": [
+        0,
+        4
+      ],
+      "description": [
+        4,
+        4
+      ]
+    },
+    "item_count_ok": true,
+    "flag_codes": [
+      "GSTIN_FORMAT",
+      "ITEM_AMOUNT_MISSING"
+    ],
+    "flagged": true,
+    "flagged_error": true,
+    "numbers_wrong": true,
+    "skipped": false
+  },
+  {
+    "name": "synthetic_05_photo.jpg",
+    "group": "synthetic-photo",
+    "ocr_confidence": 0.955,
+    "error": null,
+    "fields": {
+      "vendor_name": false,
+      "gstin": false,
+      "invoice_number": true,
+      "invoice_date": true,
+      "subtotal": false,
+      "cgst": false,
+      "sgst": false,
+      "igst": true,
+      "round_off": true,
+      "total": false
+    },
+    "items": {
+      "amount": [
+        0,
+        4
+      ],
+      "quantity": [
+        0,
+        0
+      ],
+      "rate": [
+        0,
+        4
+      ],
+      "description": [
+        4,
+        4
+      ]
+    },
+    "item_count_ok": true,
+    "flag_codes": [
+      "GSTIN_FORMAT",
+      "TOTAL_MISSING",
+      "ITEM_AMOUNT_MISSING"
+    ],
+    "flagged": true,
+    "flagged_error": true,
+    "numbers_wrong": true,
+    "skipped": false
+  },
+  {
+    "name": "synthetic_06_clean.png",
+    "group": "synthetic-clean",
+    "ocr_confidence": 0.96,
+    "error": null,
+    "fields": {
+      "vendor_name": true,
+      "gstin": true,
+      "invoice_number": true,
+      "invoice_date": true,
+      "subtotal": true,
+      "cgst": true,
+      "sgst": true,
+      "igst": true,
+      "round_off": true,
+      "total": true
+    },
+    "items": {
+      "amount": [
+        2,
+        5
+      ],
+      "quantity": [
+        0,
+        0
+      ],
+      "rate": [
+        4,
+        5
+      ],
+      "description": [
+        5,
+        5
+      ]
+    },
+    "item_count_ok": true,
+    "flag_codes": [
+      "LINE_ITEM_MATH",
+      "LINE_ITEM_MATH",
+      "LINE_ITEM_MATH",
+      "ITEMS_SUBTOTAL_MISMATCH"
+    ],
+    "flagged": true,
+    "flagged_error": true,
+    "numbers_wrong": true,
+    "skipped": false
+  },
+  {
+    "name": "synthetic_06_photo.jpg",
+    "group": "synthetic-photo",
+    "ocr_confidence": 0.9,
+    "error": "LLM: The AI service returned an error (HTTP 429)",
+    "fields": {
+      "vendor_name": false,
+      "gstin": false,
+      "invoice_number": false,
+      "invoice_date": false,
+      "subtotal": false,
+      "cgst": false,
+      "sgst": false,
+      "igst": true,
+      "round_off": true,
+      "total": false
+    },
+    "items": {
+      "amount": [
+        0,
+        5
+      ],
+      "quantity": [
+        0,
+        0
+      ],
+      "rate": [
+        0,
+        5
+      ],
+      "description": [
+        0,
+        5
+      ]
+    },
+    "item_count_ok": false,
+    "flag_codes": [
+      "TOTAL_MISSING",
+      "VENDOR_MISSING",
+      "INVOICE_NUMBER_MISSING",
+      "GSTIN_MISSING",
+      "DATE_MISSING",
+      "NO_LINE_ITEMS"
+    ],
+    "flagged": true,
+    "flagged_error": true,
+    "numbers_wrong": true,
+    "skipped": true
+  },
+  {
+    "name": "bill.jpg",
+    "group": "real",
+    "ocr_confidence": 0.405,
+    "error": null,
+    "fields": {
+      "vendor_name": true,
+      "gstin": true,
+      "invoice_number": false,
+      "invoice_date": false,
+      "subtotal": false,
+      "cgst": false,
+      "sgst": false,
+      "igst": true,
+      "round_off": false,
+      "total": false
+    },
+    "items": {
+      "amount": [
+        0,
+        3
+      ],
+      "quantity": [
+        0,
+        3
+      ],
+      "rate": [
+        0,
+        3
+      ],
+      "description": [
+        0,
+        3
+      ]
+    },
+    "item_count_ok": false,
+    "flag_codes": [
+      "TOTAL_MISSING",
+      "INVOICE_NUMBER_MISSING",
+      "DATE_MISSING",
+      "NO_LINE_ITEMS",
+      "LOW_OCR_CONFIDENCE"
+    ],
+    "flagged": true,
+    "flagged_error": true,
+    "numbers_wrong": true,
+    "skipped": false
+  }
+]

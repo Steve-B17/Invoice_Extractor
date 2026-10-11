@@ -41,3 +41,4 @@ build/
 .DS_Store
 Thumbs.db   
 eval/bills/
+eval/cache/

@@ -1,4 +1,7 @@
+import csv
+from datetime import date
 from pathlib import Path
+from typing import Literal
 
 from fastapi import (
     APIRouter,
@@ -7,6 +10,7 @@ from fastapi import (
     File,
     HTTPException,
     Query,
+    Response,
     UploadFile,
     status,
 )
@@ -21,6 +25,7 @@ from app.services.processing import process_invoice
 from app.services.review import revalidate
 from app.services.storage import save_upload
 from app.services.validation import ERROR
+from app.services.export import build_csv
 
 router = APIRouter(prefix="/invoices", tags=["invoices"])
 
@@ -29,6 +34,7 @@ EDITABLE_FIELDS = (
     "subtotal", "cgst", "sgst", "igst", "round_off", "total",
 )
 
+MAX_EXPORT_INVOICES = 5000
 
 def _owned_invoice(db: Session, invoice_id: int, user: User) -> Invoice:
     invoice = db.scalar(
@@ -96,7 +102,39 @@ def list_invoices(
     )
     return db.scalars(stmt).all()
 
+@router.get("/export")
+def export_invoices(
+    kind: Literal["invoices", "items"] = Query(default="invoices"),
+    status_filter: str = Query(default="VERIFIED", alias="status"),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Download invoices as a CSV file for Excel or accounting software.
+    By default only VERIFIED invoices are exported; use status=ALL for everything.
+    kind=items gives one row per line item instead of one row per invoice."""
+    stmt = (
+        select(Invoice)
+        .options(selectinload(Invoice.line_items), selectinload(Invoice.flags))
+        .where(Invoice.user_id == current_user.id)
+    )
+    wanted = status_filter.upper()
+    if wanted != "ALL":
+        try:
+            stmt = stmt.where(Invoice.status == InvoiceStatus(wanted).value)
+        except ValueError:
+            raise HTTPException(
+                status_code=422,
+                detail="status must be ALL, PROCESSING, NEEDS_REVIEW, VERIFIED or FAILED",
+            )
 
+    invoices = db.scalars(stmt.order_by(Invoice.id).limit(MAX_EXPORT_INVOICES)).all()
+    filename = f"{kind}-{date.today().isoformat()}.csv"
+    return Response(
+        content=build_csv(invoices, kind),
+        media_type="text/csv; charset=utf-8",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+    
 @router.get("/{invoice_id}", response_model=InvoiceOut)
 def get_invoice(
     invoice_id: int,
