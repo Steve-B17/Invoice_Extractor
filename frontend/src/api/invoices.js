@@ -23,8 +23,31 @@ export async function uploadInvoice(file, onProgress) {
   return data;
 }
 
-// Runs OCR and extraction again on a stored bill
+// Runs OCR and extraction again on a stored bill (replaces any edits)
 export async function reprocessInvoice(id) {
   const { data } = await api.post(`/invoices/${id}/reprocess`);
+  return data;
+}
+
+// Sends corrected fields. Only the fields in the body change, and the backend re-runs its checks.
+export async function updateInvoice(id, payload) {
+  const { data } = await api.patch(`/invoices/${id}`, payload);
+  return data;
+}
+
+// Marks an invoice as checked by a person. force=true overrides remaining validation errors.
+export async function verifyInvoice(id, force = false) {
+  const { data } = await api.post(`/invoices/${id}/verify`, null, {
+    params: force ? { force: true } : {},
+  });
+  return data;
+}
+
+// The original bill as a Blob. An <img src> tag cannot send the login header,
+// so the file is fetched with the token and shown through a temporary local URL.
+export async function fetchInvoiceFile(id) {
+  const { data } = await api.get(`/invoices/${id}/file`, {
+    responseType: "blob",
+  });
   return data;
 }
