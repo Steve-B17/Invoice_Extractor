@@ -2,9 +2,11 @@ import { Route, Routes } from "react-router-dom";
 import AppLayout from "./components/AppLayout";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Dashboard from "./pages/Dashboard";
+import InvoiceDetail from "./pages/InvoiceDetail";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 import Register from "./pages/Register";
+import Upload from "./pages/Upload";
 
 export default function App() {
   return (
@@ -15,6 +17,8 @@ export default function App() {
       <Route element={<ProtectedRoute />}>
         <Route element={<AppLayout />}>
           <Route index element={<Dashboard />} />
+          <Route path="upload" element={<Upload />} />
+          <Route path="invoices/:id" element={<InvoiceDetail />} />
         </Route>
       </Route>
 

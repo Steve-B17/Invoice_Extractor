@@ -24,6 +24,9 @@ export default function AppLayout() {
               <NavLink to="/" end className={linkClass}>
                 Invoices
               </NavLink>
+              <NavLink to="/upload" className={linkClass}>
+                Upload
+              </NavLink>
             </nav>
           </div>
           <div className="flex items-center gap-3">
