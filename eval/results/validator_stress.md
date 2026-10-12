@@ -1,4 +1,4 @@
-# Validator stress test (2026-10-11)
+# Validator stress test (2026-10-12)
 
 Clean bills used: 7. Random variants per bill and mistake type: 20. Seed: 42.
 Clean bills that raised an error-level flag (false alarms): 0 of 7

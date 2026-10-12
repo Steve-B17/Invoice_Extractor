@@ -2,6 +2,7 @@ import csv
 from datetime import date
 from pathlib import Path
 from typing import Literal
+from fastapi.responses import FileResponse
 
 from fastapi import (
     APIRouter,
@@ -155,6 +156,18 @@ def get_invoice_ocr(
         raw_ocr_text=invoice.raw_ocr_text, confidence=invoice.confidence
     )
 
+@router.get("/{invoice_id}/file")
+def get_invoice_file(
+    invoice_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """The original uploaded bill, only for its owner."""
+    invoice = _owned_invoice(db, invoice_id, current_user)
+    path = Path(invoice.file_path)   # the path was chosen by the server at upload time
+    if not path.is_file():
+        raise HTTPException(status_code=404, detail="The stored file is missing")
+    return FileResponse(path, media_type=invoice.content_type)
 
 @router.patch("/{invoice_id}", response_model=InvoiceOut)
 def update_invoice(

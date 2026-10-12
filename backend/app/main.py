@@ -1,9 +1,20 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 
+from app.core.config import settings
 from app.routers import auth, invoices
 
 app = FastAPI(title="Invoice Extractor API")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[origin.strip() for origin in settings.cors_origins.split(",") if origin.strip()],
+    allow_credentials=False,   # the token travels in an Authorization header, not a cookie
+    allow_methods=["*"],
+    allow_headers=["*"],
+    expose_headers=["Content-Disposition"],   # lets the frontend read the CSV file name
+)
 
 app.include_router(auth.router)
 app.include_router(invoices.router)
