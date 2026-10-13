@@ -14,7 +14,9 @@ export function onUnauthorized(handler) {
 }
 
 export const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL ?? "http://localhost:8000",
+  baseURL:
+    import.meta.env.VITE_API_URL ??
+    "https://invoice-extractor-vttj.onrender.com",
 });
 
 // Attach the login token to every request
@@ -39,7 +41,9 @@ api.interceptors.response.use(
 export function errorMessage(error, fallback = "Something went wrong") {
   const detail = error.response?.data?.detail;
   if (typeof detail === "string") return detail;
-  if (Array.isArray(detail) && detail.length) return detail.map((item) => item.msg).join(". ");
-  if (error.request && !error.response) return "Cannot reach the server. Is the backend running?";
+  if (Array.isArray(detail) && detail.length)
+    return detail.map((item) => item.msg).join(". ");
+  if (error.request && !error.response)
+    return "Cannot reach the server. Is the backend running?";
   return fallback;
 }
