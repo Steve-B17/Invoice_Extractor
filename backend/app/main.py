@@ -7,6 +7,8 @@ from app.routers import auth, invoices
 
 app = FastAPI(title="Invoice Extractor API")
 
+origins = [https://invoice-extractor-one-blue.vercel.app/, http://localhost:5173]
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[origin.strip() for origin in settings.cors_origins.split(",") if origin.strip()],
