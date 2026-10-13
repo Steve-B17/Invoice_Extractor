@@ -1,14 +1,22 @@
-// The reasons the validators gave, in red for errors and amber for warnings
+import { TriangleAlert } from "./icons";
+
+// The reasons the validators gave, in rose for errors and amber for warnings
 export default function FlagMessages({ flags }) {
   if (!flags || flags.length === 0) return null;
   return (
-    <ul className="mt-1 space-y-0.5">
+    <ul className="mt-1.5 space-y-1">
       {flags.map((flag, index) => (
         <li
           key={index}
-          className={`text-sm ${flag.severity === "error" ? "text-red-700" : "text-amber-700"}`}
+          className={`flex items-start gap-1.5 text-sm ${
+            flag.severity === "error" ? "text-rose-700" : "text-amber-700"
+          }`}
         >
-          {flag.message}
+          <TriangleAlert
+            className="mt-0.5 h-4 w-4 shrink-0"
+            aria-hidden="true"
+          />
+          <span>{flag.message}</span>
         </li>
       ))}
     </ul>

@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import { errorMessage } from "../api/client";
 import {
   reprocessInvoice,
@@ -9,6 +10,7 @@ import {
   verifyInvoice,
 } from "../api/invoices";
 import {
+  cardClass,
   fieldClass,
   inputClass,
   primaryButton,
@@ -22,20 +24,43 @@ import {
   toFormValues,
   toPayload,
 } from "../utils/invoiceForm";
+import { nextToReview } from "../utils/invoiceStats";
+import { useConfirm } from "./ConfirmProvider";
 import FlagMessages from "./FlagMessages";
+import {
+  Plus,
+  RefreshCw,
+  Save,
+  ShieldCheck,
+  Trash2,
+  TriangleAlert,
+  Undo2,
+} from "./icons";
 
 function Field({ label, formError, flags, className = "", children }) {
   return (
     <div className={className}>
       <label className="block">
-        <span className="mb-1 block text-sm font-medium text-slate-700">
+        <span className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-200">
           {label}
         </span>
         {children}
       </label>
-      {formError && <p className="mt-1 text-sm text-red-600">{formError}</p>}
+      {formError && <p className="mt-1 text-sm text-rose-600 dark:text-rose-400">{formError}</p>}
       <FlagMessages flags={flags} />
     </div>
+  );
+}
+
+function Section({ title, hint, children }) {
+  return (
+    <section className={`${cardClass} p-4 sm:p-5`}>
+      <div className="mb-3">
+        <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-200">{title}</h2>
+        {hint && <p className="text-sm text-slate-500 dark:text-slate-400">{hint}</p>}
+      </div>
+      {children}
+    </section>
   );
 }
 
@@ -60,10 +85,10 @@ function plural(count, word) {
 export default function ReviewForm({ invoice }) {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const confirm = useConfirm();
   const locked = invoice.status === "VERIFIED";
   const cacheKey = ["invoice", String(invoice.id)];
 
-  const [notice, setNotice] = useState("");
   const [needsForce, setNeedsForce] = useState(false);
   const [actionError, setActionError] = useState("");
 
@@ -96,9 +121,22 @@ export default function ReviewForm({ invoice }) {
   const verify = useMutation({
     mutationFn: (force) => verifyInvoice(invoice.id, force),
     onSuccess: () => {
+      // pick the next bill waiting for review from the list we already have
+      const next = nextToReview(
+        queryClient.getQueryData(["invoices"]),
+        invoice.id,
+      );
       queryClient.invalidateQueries({ queryKey: ["invoices"] });
       queryClient.invalidateQueries({ queryKey: ["invoice"] });
-      navigate("/");
+      if (next) {
+        toast.success("Verified", {
+          description: "Opening the next bill to review.",
+        });
+        navigate(`/invoices/${next.id}`);
+      } else {
+        toast.success("Verified. You are all caught up.");
+        navigate("/");
+      }
     },
   });
 
@@ -107,35 +145,20 @@ export default function ReviewForm({ invoice }) {
     onSuccess: (updated) => {
       queryClient.setQueryData(cacheKey, updated); // status is now PROCESSING
       queryClient.invalidateQueries({ queryKey: ["invoices"] });
+      toast.success("Reading the bill again");
     },
+    onError: (error) =>
+      setActionError(errorMessage(error, "Could not restart processing")),
   });
 
   const busy = save.isPending || verify.isPending || reread.isPending;
-
-  // Warn before the tab is closed with unsaved edits
-  useEffect(() => {
-    if (!isDirty) return undefined;
-    const warn = (event) => {
-      event.preventDefault();
-      event.returnValue = "";
-    };
-    window.addEventListener("beforeunload", warn);
-    return () => window.removeEventListener("beforeunload", warn);
-  }, [isDirty]);
-
-  // The "Saved" message disappears by itself
-  useEffect(() => {
-    if (!notice) return undefined;
-    const timer = setTimeout(() => setNotice(""), 4000);
-    return () => clearTimeout(timer);
-  }, [notice]);
 
   const onSave = handleSubmit(async (values) => {
     setActionError("");
     setNeedsForce(false);
     try {
       await save.mutateAsync(values);
-      setNotice("Saved. The checks were run again.");
+      toast.success("Saved. The checks were run again.");
     } catch (error) {
       setActionError(errorMessage(error, "Could not save"));
     }
@@ -159,17 +182,41 @@ export default function ReviewForm({ invoice }) {
   const onVerify = handleSubmit((values) => runVerify(values, false));
   const onVerifyAnyway = handleSubmit((values) => runVerify(values, true));
 
-  function onReread() {
-    const sure = window.confirm(
-      "Read the bill again? This replaces everything in the form, including edits you have already saved.",
-    );
+  async function onReread() {
+    const sure = await confirm({
+      title: "Read the bill again?",
+      message:
+        "This replaces everything in the form, including edits you have already saved.",
+      confirmLabel: "Read again",
+      tone: "danger",
+    });
     if (!sure) return;
     setActionError("");
-    reread.mutate(undefined, {
-      onError: (error) =>
-        setActionError(errorMessage(error, "Could not restart processing")),
-    });
+    reread.mutate();
   }
+
+  // Warn before the tab is closed with unsaved edits
+  useEffect(() => {
+    if (!isDirty) return undefined;
+    const warn = (event) => {
+      event.preventDefault();
+      event.returnValue = "";
+    };
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, [isDirty]);
+
+  // Ctrl+S (or Cmd+S) saves
+  useEffect(() => {
+    function onKeyDown(event) {
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "s") {
+        event.preventDefault();
+        if (isDirty && !busy && !locked) onSave();
+      }
+    }
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  });
 
   function textField(name, label, props = {}, className = "") {
     return (
@@ -209,76 +256,93 @@ export default function ReviewForm({ invoice }) {
   }
 
   return (
-    <form onSubmit={onSave} noValidate className="space-y-5">
+    <form onSubmit={onSave} noValidate className="space-y-4">
       {locked && (
-        <p className="rounded-xl bg-green-50 px-4 py-3 text-green-800">
-          This invoice is verified and locked.
-        </p>
+        <div className="flex items-center gap-3 rounded-2xl bg-emerald-50 px-4 py-3 text-emerald-800 dark:bg-emerald-500/10 dark:text-emerald-300">
+          <ShieldCheck className="h-5 w-5 shrink-0" />
+          <p className="font-medium">This invoice is verified and locked.</p>
+        </div>
       )}
 
       {invoice.error_message && !locked && (
-        <div className="space-y-2 rounded-xl bg-amber-50 px-4 py-3 text-amber-900">
-          <p>{invoice.error_message}</p>
+        <div className="space-y-3 rounded-2xl bg-amber-50 px-4 py-3 text-amber-900 dark:bg-amber-500/10 dark:text-amber-300">
+          <p className="text-sm">{invoice.error_message}</p>
           <button
             type="button"
             className={secondaryButton}
             disabled={busy}
             onClick={onReread}
           >
+            <RefreshCw className="h-4 w-4" />
             Read the bill again
           </button>
         </div>
       )}
 
       {!locked && (
-        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+        <div className={`${cardClass} p-4 sm:p-5`}>
           {flagErrors + flagWarnings > 0 ? (
-            <>
-              <p className="font-medium text-slate-900">
-                {[
-                  flagErrors > 0 && plural(flagErrors, "error"),
-                  flagWarnings > 0 && plural(flagWarnings, "warning"),
-                ]
-                  .filter(Boolean)
-                  .join(" and ")}{" "}
-                to check
-              </p>
-              <p className="text-sm text-slate-600">
-                Highlighted fields do not agree with the other numbers on the
-                bill. Compare each one with the image, fix what is wrong, and
-                save. The highlights refresh when you save.
-              </p>
-              <FlagMessages flags={general} />
-            </>
+            <div className="flex items-start gap-3">
+              <span className="rounded-xl bg-amber-50 p-2 text-amber-600">
+                <TriangleAlert className="h-5 w-5" />
+              </span>
+              <div className="space-y-2">
+                <div className="flex flex-wrap items-center gap-2">
+                  <p className="font-semibold text-slate-900 dark:text-slate-200">
+                    Please check the highlighted fields
+                  </p>
+                  {flagErrors > 0 && (
+                    <span className="rounded-full bg-rose-50 px-2 py-0.5 text-xs font-medium text-rose-700 ring-1 ring-inset ring-rose-200">
+                      {plural(flagErrors, "error")}
+                    </span>
+                  )}
+                  {flagWarnings > 0 && (
+                    <span className="rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700 ring-1 ring-inset ring-amber-200">
+                      {plural(flagWarnings, "warning")}
+                    </span>
+                  )}
+                </div>
+                <p className="text-sm text-slate-600 dark:text-slate-300">
+                  Highlighted fields do not agree with the other numbers on the
+                  bill. Compare each one with the image, fix what is wrong, and
+                  save. The highlights refresh when you save.
+                </p>
+                <FlagMessages flags={general} />
+              </div>
+            </div>
           ) : (
-            <p className="font-medium text-green-700">
-              All checks passed. Compare the bill once yourself, then verify.
-            </p>
+            <div className="flex items-center gap-3">
+              <span className="rounded-xl bg-emerald-50 p-2 text-emerald-600">
+                <ShieldCheck className="h-5 w-5" />
+              </span>
+              <p className="font-semibold text-emerald-700">
+                All checks passed. Compare the bill once yourself, then verify.
+              </p>
+            </div>
           )}
         </div>
       )}
 
-      <fieldset disabled={locked || busy} className="space-y-6">
-        <section className="grid gap-3 sm:grid-cols-2">
-          {textField(
-            "vendor_name",
-            "Vendor",
-            { maxLength: 255 },
-            "sm:col-span-2",
-          )}
-          {textField("gstin", "GSTIN (15 characters)", {
-            maxLength: 15,
-            autoCapitalize: "characters",
-            spellCheck: false,
-          })}
-          {textField("invoice_number", "Invoice number", { maxLength: 100 })}
-          {textField("invoice_date", "Date", { type: "date" })}
-        </section>
+      <fieldset disabled={locked || busy} className="min-w-0 space-y-4">
+        <Section title="Vendor and bill">
+          <div className="grid gap-3 sm:grid-cols-2">
+            {textField(
+              "vendor_name",
+              "Vendor",
+              { maxLength: 255 },
+              "sm:col-span-2",
+            )}
+            {textField("gstin", "GSTIN (15 characters)", {
+              maxLength: 15,
+              autoCapitalize: "characters",
+              spellCheck: false,
+            })}
+            {textField("invoice_number", "Invoice number", { maxLength: 100 })}
+            {textField("invoice_date", "Date", { type: "date" })}
+          </div>
+        </Section>
 
-        <section>
-          <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-slate-500">
-            Amounts (Rs)
-          </h2>
+        <Section title="Amounts" hint="All amounts in rupees.">
           <div className="grid grid-cols-2 gap-3">
             {moneyField("subtotal", "Subtotal")}
             {moneyField("cgst", "CGST")}
@@ -287,119 +351,111 @@ export default function ReviewForm({ invoice }) {
             {moneyField("round_off", "Round off")}
             {moneyField("total", "Total")}
           </div>
-        </section>
+        </Section>
 
-        <section className="space-y-3">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
-            Line items
-          </h2>
+        <Section title="Line items">
+          <div className="space-y-3">
+            {fields.length === 0 && (
+              <p className="text-sm text-slate-500 dark:text-slate-400">No line items.</p>
+            )}
 
-          {fields.length === 0 && (
-            <p className="text-sm text-slate-500">No line items.</p>
-          )}
+            {fields.map((field, index) => {
+              const flags = byItem[index];
+              const severity = topSeverity(flags);
+              const rowErrors = errors.line_items?.[index] ?? {};
+              const tone =
+                severity === "error"
+                  ? "border-rose-300 bg-rose-50/50 dark:border-rose-500/40 dark:bg-rose-500/5"
+                  : severity === "warning"
+                    ? "border-amber-300 bg-amber-50/50 dark:border-amber-500/40 dark:bg-amber-500/5"
+                    : "border-slate-200 dark:border-slate-700/80 dark:bg-slate-800/70";
 
-          {fields.map((field, index) => {
-            const flags = byItem[index];
-            const severity = topSeverity(flags);
-            const rowErrors = errors.line_items?.[index] ?? {};
-            const tone =
-              severity === "error"
-                ? "border-red-300 bg-red-50/50"
-                : severity === "warning"
-                  ? "border-amber-300 bg-amber-50/50"
-                  : "border-slate-200";
+              return (
+                <div key={field.id} className={`rounded-xl border p-3 ${tone}`}>
+                  <div className="mb-2 flex items-center justify-between">
+                    <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                      Item {index + 1}
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => remove(index)}
+                      className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-sm text-rose-600 hover:bg-rose-50 dark:text-rose-300 dark:hover:bg-rose-500/10"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                      Remove
+                    </button>
+                  </div>
 
-            return (
-              <div key={field.id} className={`rounded-xl border p-3 ${tone}`}>
-                <div className="mb-2 flex items-center justify-between">
-                  <p className="text-sm font-medium text-slate-700">
-                    Item {index + 1}
-                  </p>
-                  <button
-                    type="button"
-                    onClick={() => remove(index)}
-                    className="text-sm text-red-600 hover:underline"
-                  >
-                    Remove
-                  </button>
+                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                    <Field
+                      label="Description"
+                      className="col-span-2 sm:col-span-4"
+                    >
+                      <input
+                        type="text"
+                        maxLength={255}
+                        className={inputClass}
+                        {...register(`line_items.${index}.description`)}
+                      />
+                    </Field>
+                    <Field label="HSN code">
+                      <input
+                        type="text"
+                        maxLength={20}
+                        className={inputClass}
+                        {...register(`line_items.${index}.hsn_code`)}
+                      />
+                    </Field>
+                    <Field
+                      label="Quantity"
+                      formError={rowErrors.quantity?.message}
+                    >
+                      <input
+                        inputMode="decimal"
+                        className={inputClass}
+                        {...register(
+                          `line_items.${index}.quantity`,
+                          quantityRule,
+                        )}
+                      />
+                    </Field>
+                    <Field label="Rate" formError={rowErrors.rate?.message}>
+                      <input
+                        inputMode="decimal"
+                        className={inputClass}
+                        {...register(`line_items.${index}.rate`, moneyRule)}
+                      />
+                    </Field>
+                    <Field label="Amount" formError={rowErrors.amount?.message}>
+                      <input
+                        inputMode="decimal"
+                        className={inputClass}
+                        {...register(`line_items.${index}.amount`, moneyRule)}
+                      />
+                    </Field>
+                  </div>
+
+                  <FlagMessages flags={flags} />
                 </div>
+              );
+            })}
 
-                <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                  <Field
-                    label="Description"
-                    className="col-span-2 sm:col-span-4"
-                  >
-                    <input
-                      type="text"
-                      maxLength={255}
-                      className={inputClass}
-                      {...register(`line_items.${index}.description`)}
-                    />
-                  </Field>
-                  <Field label="HSN code">
-                    <input
-                      type="text"
-                      maxLength={20}
-                      className={inputClass}
-                      {...register(`line_items.${index}.hsn_code`)}
-                    />
-                  </Field>
-                  <Field
-                    label="Quantity"
-                    formError={rowErrors.quantity?.message}
-                  >
-                    <input
-                      inputMode="decimal"
-                      className={inputClass}
-                      {...register(
-                        `line_items.${index}.quantity`,
-                        quantityRule,
-                      )}
-                    />
-                  </Field>
-                  <Field label="Rate" formError={rowErrors.rate?.message}>
-                    <input
-                      inputMode="decimal"
-                      className={inputClass}
-                      {...register(`line_items.${index}.rate`, moneyRule)}
-                    />
-                  </Field>
-                  <Field label="Amount" formError={rowErrors.amount?.message}>
-                    <input
-                      inputMode="decimal"
-                      className={inputClass}
-                      {...register(`line_items.${index}.amount`, moneyRule)}
-                    />
-                  </Field>
-                </div>
-
-                <FlagMessages flags={flags} />
-              </div>
-            );
-          })}
-
-          <button
-            type="button"
-            className={secondaryButton}
-            onClick={() => append({ ...EMPTY_ITEM })}
-          >
-            Add item
-          </button>
-        </section>
+            <button
+              type="button"
+              className={secondaryButton}
+              onClick={() => append({ ...EMPTY_ITEM })}
+            >
+              <Plus className="h-4 w-4" />
+              Add item
+            </button>
+          </div>
+        </Section>
       </fieldset>
 
-      {isDirty && !locked && (
-        <p className="text-sm text-slate-600">You have unsaved changes.</p>
-      )}
-      {notice && (
-        <p className="rounded-lg bg-green-50 px-3 py-2 text-sm text-green-800">
-          {notice}
-        </p>
-      )}
       {actionError && (
         <div
           role="alert"
-          className="space-y-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800"
+          className="space-y-2 rounded-2xl bg-rose-50 px-4 py-3 text-sm text-rose-800"
         >
           <p>{actionError}</p>
           {needsForce && (
@@ -416,13 +472,15 @@ export default function ReviewForm({ invoice }) {
       )}
 
       {!locked && (
-        <div className="sticky bottom-0 -mx-4 flex flex-wrap items-center gap-3 border-t bg-white/95 px-4 py-3 backdrop-blur">
+        <div className="sticky bottom-3 z-10 flex flex-wrap items-center gap-2 rounded-2xl border border-slate-200 bg-white/95 p-3 shadow-lg backdrop-blur dark:border-slate-700/80 dark:bg-slate-800/90">
           <button
             type="submit"
             className={primaryButton}
             disabled={!isDirty || busy}
+            title="Save (Ctrl+S)"
           >
-            {save.isPending ? "Saving…" : "Save changes"}
+            <Save className="h-4 w-4" />
+            {save.isPending ? "Saving…" : "Save"}
           </button>
           <button
             type="button"
@@ -430,15 +488,20 @@ export default function ReviewForm({ invoice }) {
             disabled={!isDirty || busy}
             onClick={() => reset(toFormValues(invoice))}
           >
-            Discard changes
+            <Undo2 className="h-4 w-4" />
+            Discard
           </button>
+          {isDirty && (
+            <span className="text-sm text-slate-500 dark:text-slate-400">Unsaved changes</span>
+          )}
           <button
             type="button"
-            className={`${successButton} sm:ml-auto`}
+            className={`${successButton} ml-auto`}
             disabled={busy}
             onClick={onVerify}
           >
-            {verify.isPending ? "Verifying…" : "Verify"}
+            <ShieldCheck className="h-4 w-4" />
+            {verify.isPending ? "Verifying…" : "Verify & next"}
           </button>
         </div>
       )}

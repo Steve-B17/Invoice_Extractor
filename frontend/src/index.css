@@ -1,1 +1,70 @@
 @import "tailwindcss";
+@import "@fontsource-variable/inter";
+
+@theme {
+  /* Inter has no Tamil letters, so the browser falls back to a font that does */
+  --font-sans:
+    "Inter Variable", "Nirmala UI", "Noto Sans Tamil", ui-sans-serif, system-ui,
+    sans-serif;
+}
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  color-scheme: light;
+}
+
+:root.dark {
+  color-scheme: dark;
+}
+
+html {
+  background-color: #f8fafc;
+}
+
+html.dark {
+  background-color: #0f172a;
+}
+
+body {
+  background-color: #f8fafc;
+  color: #0f172a;
+  -webkit-font-smoothing: antialiased;
+}
+
+html.dark body {
+  background-color: #0f172a;
+  color: #cbd5e1;
+}
+
+* {
+  transition-property: background-color, border-color, color, fill, stroke,
+    box-shadow, transform;
+  transition-duration: 150ms;
+  transition-timing-function: ease;
+}
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.fade-in-up {
+  animation: fade-in-up 0.25s ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fade-in-up {
+    animation: none;
+  }
+  * {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}

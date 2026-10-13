@@ -2,11 +2,15 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
 import { errorMessage } from "../api/client";
+import AuthLayout from "../components/AuthLayout";
 import FormField from "../components/FormField";
+import PasswordInput from "../components/PasswordInput";
 import { useAuth } from "../context/AuthContext";
+import useDocumentTitle from "../hooks/useDocumentTitle";
 import { inputClass, primaryButton } from "../ui";
 
 export default function Register() {
+  useDocumentTitle("Register");
   const { register: signUp } = useAuth();
   const navigate = useNavigate();
   const [serverError, setServerError] = useState("");
@@ -28,15 +32,22 @@ export default function Register() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4">
-      <form
-        onSubmit={handleSubmit(onSubmit)}
-        className="w-full max-w-sm space-y-4 rounded-2xl bg-white p-6 shadow"
-      >
-        <h1 className="text-2xl font-semibold text-slate-900">
-          Create an account
-        </h1>
-
+    <AuthLayout
+      title="Create your account"
+      subtitle="It takes a few seconds."
+      footer={
+        <>
+          Already registered?{" "}
+          <Link
+            to="/login"
+            className="font-semibold text-indigo-600 hover:underline dark:text-indigo-400"
+          >
+            Log in
+          </Link>
+        </>
+      }
+    >
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
         <FormField label="Email" error={errors.email?.message}>
           <input
             type="email"
@@ -50,10 +61,8 @@ export default function Register() {
           label="Password (8 to 72 characters)"
           error={errors.password?.message}
         >
-          <input
-            type="password"
+          <PasswordInput
             autoComplete="new-password"
-            className={inputClass}
             {...register("password", {
               required: "Password is required",
               minLength: { value: 8, message: "Use at least 8 characters" },
@@ -63,10 +72,8 @@ export default function Register() {
         </FormField>
 
         <FormField label="Confirm password" error={errors.confirm?.message}>
-          <input
-            type="password"
+          <PasswordInput
             autoComplete="new-password"
-            className={inputClass}
             {...register("confirm", {
               required: "Please repeat the password",
               validate: (value) =>
@@ -78,7 +85,7 @@ export default function Register() {
         {serverError && (
           <p
             role="alert"
-            className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700"
+            className="rounded-xl bg-rose-50 px-3 py-2 text-sm text-rose-700 dark:bg-rose-950/50 dark:text-rose-300"
           >
             {serverError}
           </p>
@@ -87,21 +94,11 @@ export default function Register() {
         <button
           type="submit"
           disabled={isSubmitting}
-          className={`${primaryButton} w-full`}
+          className={`${primaryButton} w-full py-2.5`}
         >
-          {isSubmitting ? "Creating account…" : "Register"}
+          {isSubmitting ? "Creating account…" : "Create account"}
         </button>
-
-        <p className="text-center text-sm text-slate-600">
-          Already registered?{" "}
-          <Link
-            to="/login"
-            className="font-medium text-indigo-600 hover:underline"
-          >
-            Log in
-          </Link>
-        </p>
       </form>
-    </div>
+    </AuthLayout>
   );
 }

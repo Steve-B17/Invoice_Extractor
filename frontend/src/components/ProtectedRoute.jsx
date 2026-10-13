@@ -6,7 +6,7 @@ export default function ProtectedRoute() {
   const location = useLocation();
 
   if (loading) {
-    return <p className="p-6 text-slate-500">Loading…</p>;
+    return <p className="p-6 text-slate-500 dark:text-slate-400">Loading…</p>;
   }
   if (!user) {
     // remember where the person was going, so login can send them back
