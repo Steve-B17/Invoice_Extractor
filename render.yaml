@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: invoice-extractor-api
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    preDeployCommand: alembic upgrade head
+    healthCheckPath: /health
+    disk:
+      name: invoice-uploads
+      mountPath: /app/uploads
+      sizeGB: 1
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: SECRET_KEY
+        generateValue: true
+      - key: CORS_ORIGINS
+        sync: false
+      - key: UPLOAD_DIR
+        value: /app/uploads
