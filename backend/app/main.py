@@ -7,12 +7,10 @@ from app.routers import auth, invoices
 
 app = FastAPI(title="Invoice Extractor API")
 
-origins = ["https://invoice-extractor-one-blue.vercel.app/", "http://localhost:5173"]
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=False,   # the token travels in an Authorization header, not a cookie
+    allow_origins=["https://invoice-extractor-one-blue.vercel.app/", "http://localhost:5173"],
+    allow_credentials=True,   # the token travels in an Authorization header, not a cookie
     allow_methods=["*"],
     allow_headers=["*"],
     expose_headers=["Content-Disposition"],   # lets the frontend read the CSV file name
