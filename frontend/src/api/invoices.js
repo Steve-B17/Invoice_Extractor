@@ -1,4 +1,5 @@
 import { api } from "./client";
+import { filenameFromDisposition } from "../utils/download";
 
 export async function listInvoices() {
   const { data } = await api.get("/invoices", { params: { limit: 100 } });
@@ -50,4 +51,23 @@ export async function fetchInvoiceFile(id) {
     responseType: "blob",
   });
   return data;
+}
+// Deletes an invoice and its stored bill image
+export async function deleteInvoice(id) {
+  await api.delete(`/invoices/${id}`);
+}
+
+// Downloads a CSV as a Blob. kind is "invoices" or "items"; status is "VERIFIED", "ALL", and so on.
+export async function exportCsv({ kind, status }) {
+  const response = await api.get("/invoices/export", {
+    params: { kind, status },
+    responseType: "blob",
+  });
+  return {
+    blob: response.data,
+    filename: filenameFromDisposition(
+      response.headers["content-disposition"],
+      `${kind}.csv`,
+    ),
+  };
 }

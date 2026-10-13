@@ -15,7 +15,7 @@ from fastapi import (
     UploadFile,
     status,
 )
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session, selectinload
 
 from app.deps import get_current_user, get_db
@@ -27,6 +27,7 @@ from app.services.review import revalidate
 from app.services.storage import save_upload
 from app.services.validation import ERROR
 from app.services.export import build_csv
+from app.core.config import settings
 
 router = APIRouter(prefix="/invoices", tags=["invoices"])
 
@@ -56,6 +57,14 @@ def upload_invoice(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    uploaded = db.scalar(
+        select(func.count()).select_from(Invoice).where(Invoice.user_id == current_user.id)
+    )
+    if uploaded >= settings.max_invoices_per_user:
+        raise HTTPException(
+            status_code=429,
+            detail="Upload limit reached for this account. Delete old invoices first.",
+        )
     stored_path, content_type = save_upload(file, current_user.id)
 
     # Keep the client's filename for display only, never for the file path
@@ -168,6 +177,22 @@ def get_invoice_file(
     if not path.is_file():
         raise HTTPException(status_code=404, detail="The stored file is missing")
     return FileResponse(path, media_type=invoice.content_type)
+
+@router.delete("/{invoice_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_invoice(
+    invoice_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Remove an invoice and its stored bill image."""
+    invoice = _owned_invoice(db, invoice_id, current_user)
+    if invoice.status == InvoiceStatus.PROCESSING.value:
+        raise HTTPException(status_code=409, detail="Invoice is still being processed")
+
+    file_path = Path(invoice.file_path)
+    db.delete(invoice)   # line items and flags go with it
+    db.commit()
+    file_path.unlink(missing_ok=True)   # only after the database row is gone
 
 @router.patch("/{invoice_id}", response_model=InvoiceOut)
 def update_invoice(

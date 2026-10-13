@@ -1,10 +1,19 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { fetchMe, loginRequest, registerRequest } from "../api/auth";
 import { clearToken, getToken, onUnauthorized, setToken } from "../api/client";
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
+  const queryClient = useQueryClient();
   const [user, setUser] = useState(null);
   // If a token is saved, we must ask the server who it belongs to before showing pages
   const [loading, setLoading] = useState(Boolean(getToken()));
@@ -12,7 +21,8 @@ export function AuthProvider({ children }) {
   const logout = useCallback(() => {
     clearToken();
     setUser(null);
-  }, []);
+    queryClient.clear(); // forget every invoice the previous person loaded
+  }, [queryClient]);
 
   useEffect(() => {
     if (!getToken()) return;
@@ -24,12 +34,16 @@ export function AuthProvider({ children }) {
 
   useEffect(() => onUnauthorized(logout), [logout]);
 
-  const login = useCallback(async (email, password) => {
-    clearToken();   // never send an old token along with a login attempt
-    const token = await loginRequest(email, password);
-    setToken(token);
-    setUser(await fetchMe());
-  }, []);
+  const login = useCallback(
+    async (email, password) => {
+      clearToken(); // never send an old token along with a login attempt
+      queryClient.clear();
+      const token = await loginRequest(email, password);
+      setToken(token);
+      setUser(await fetchMe());
+    },
+    [queryClient],
+  );
 
   const register = useCallback(
     async (email, password) => {

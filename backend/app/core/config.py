@@ -20,6 +20,7 @@ class Settings(BaseSettings):
     llm_model: str | None = None
     llm_json_mode: bool = True
     llm_timeout_seconds: int = 60
+    max_invoices_per_user: int = 100
 
     model_config = SettingsConfigDict(env_file=".env")
     cors_origins: str = "http://localhost:5173,http://127.0.0.1:5173"

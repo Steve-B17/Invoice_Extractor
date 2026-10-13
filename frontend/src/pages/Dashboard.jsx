@@ -6,6 +6,7 @@ import { listInvoices, reprocessInvoice } from "../api/invoices";
 import Spinner from "../components/Spinner";
 import StatusBadge from "../components/StatusBadge";
 import { primaryButton, secondaryButton } from "../ui";
+import ExportMenu from "../components/ExportMenu";
 import {
   STATUS_FILTERS,
   countByStatus,
@@ -82,9 +83,12 @@ export default function Dashboard() {
     <div className="space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-xl font-semibold text-slate-900">Invoices</h1>
-        <Link to="/upload" className={primaryButton}>
-          Upload bill
-        </Link>
+        <div className="flex items-center gap-2">
+          <ExportMenu />
+          <Link to="/upload" className={primaryButton}>
+            Upload bill
+          </Link>
+        </div>
       </div>
 
       {data.length === 0 ? (

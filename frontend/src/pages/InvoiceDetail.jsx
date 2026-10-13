@@ -1,7 +1,7 @@
-import { useQuery } from "@tanstack/react-query";
-import { Link, useParams } from "react-router-dom";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { errorMessage } from "../api/client";
-import { getInvoice } from "../api/invoices";
+import { deleteInvoice, getInvoice } from "../api/invoices";
 import BillViewer from "../components/BillViewer";
 import ReviewForm from "../components/ReviewForm";
 import Spinner from "../components/Spinner";
@@ -9,6 +9,9 @@ import StatusBadge from "../components/StatusBadge";
 
 export default function InvoiceDetail() {
   const { id } = useParams();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
   const {
     data: invoice,
     isLoading,
@@ -20,6 +23,24 @@ export default function InvoiceDetail() {
     refetchInterval: (query) =>
       query.state.data?.status === "PROCESSING" ? 3000 : false,
   });
+
+  const remove = useMutation({
+    mutationFn: () => deleteInvoice(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["invoices"] });
+      navigate("/");
+    },
+  });
+
+  function onDelete() {
+    if (
+      window.confirm(
+        "Delete this invoice and its stored bill image? This cannot be undone.",
+      )
+    ) {
+      remove.mutate();
+    }
+  }
 
   if (isLoading) return <p className="text-slate-500">Loading…</p>;
   if (error) {
@@ -51,8 +72,27 @@ export default function InvoiceDetail() {
         <h1 className="truncate text-xl font-semibold text-slate-900">
           {invoice.vendor_name ?? invoice.original_filename}
         </h1>
-        <StatusBadge status={invoice.status} />
+        <div className="flex items-center gap-3">
+          <StatusBadge status={invoice.status} />
+          <button
+            type="button"
+            onClick={onDelete}
+            disabled={remove.isPending || invoice.status === "PROCESSING"}
+            className="text-sm text-red-600 hover:underline disabled:opacity-50"
+          >
+            Delete
+          </button>
+        </div>
       </div>
+
+      {remove.error && (
+        <p
+          role="alert"
+          className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700"
+        >
+          {errorMessage(remove.error, "Could not delete this invoice")}
+        </p>
+      )}
 
       {invoice.status === "PROCESSING" ? (
         <div className="flex items-center gap-3 rounded-xl bg-white p-6 shadow">
