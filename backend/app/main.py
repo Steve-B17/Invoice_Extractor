@@ -9,7 +9,7 @@ app = FastAPI(title="Invoice Extractor API")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://invoice-extractor-one-blue.vercel.app/", "http://localhost:5173"],
+    allow_origins=["https://invoice-extractor-one-blue.vercel.app/"],
     allow_credentials=True,   # the token travels in an Authorization header, not a cookie
     allow_methods=["*"],
     allow_headers=["*"],
