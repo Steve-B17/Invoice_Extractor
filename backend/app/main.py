@@ -7,11 +7,11 @@ from app.routers import auth, invoices
 
 app = FastAPI(title="Invoice Extractor API")
 
-origins = [https://invoice-extractor-one-blue.vercel.app/, http://localhost:5173]
+origins = ["https://invoice-extractor-one-blue.vercel.app/", "http://localhost:5173"]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[origin.strip() for origin in settings.cors_origins.split(",") if origin.strip()],
+    allow_origins=origins,
     allow_credentials=False,   # the token travels in an Authorization header, not a cookie
     allow_methods=["*"],
     allow_headers=["*"],
