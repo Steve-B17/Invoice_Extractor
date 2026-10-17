@@ -15,4 +15,3 @@ opencv-python-headless
 numpy
 pillow
 pymupdf
-flask-cors
