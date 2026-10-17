@@ -1,22 +1,14 @@
-<!--
-  Polished README for Invoice_Extractor
-  Replaces the existing README.md with styled Markdown, TOC links, clear sections, and improved code blocks.
--->
-
 # Invoice Extractor
 
-[![Docs](https://img.shields.io/badge/docs-OpenAPI-blue.svg)](#api)
-[![Demo](https://img.shields.io/badge/demo-available-lightgrey.svg)](<<your Vercel link>>)
-
-Turn photos or PDFs of Indian GST bills (including bills with Tamil text) into validated, reviewable, structured data ready for export (CSV). The pipeline combines image preprocessing, Tesseract OCR, LLM-assisted extraction into a fixed schema, and deterministic validators to guarantee arithmetic and GST checks; a human review step finalizes corrections.
+Turn photos or PDFs of Indian GST bills (including bills with Tamil text) into validated, reviewable, structured data ready for export (CSV). The system combines image preprocessing, OCR (Tesseract), LLM-assisted extraction into a fixed schema, and deterministic validators to ensure arithmetic and GST checks; a human review step finalizes correctness before export.
 
 ---
 
 ## Table of contents
 
-- [Why this project](#why-this-project)
+- [Overview](#overview)
 - [Tech stack](#tech-stack)
-- [Architecture overview](#architecture-overview)
+- [How it works](#how-it-works)
 - [Repository layout](#repository-layout)
 - [Quick start (local)](#quick-start-local)
 - [Docker / Compose](#docker--compose)
@@ -30,47 +22,35 @@ Turn photos or PDFs of Indian GST bills (including bills with Tamil text) into v
 
 ---
 
-## Why this project
+## Overview
 
-OCR and LLMs make errors on photos and degraded scans. This project treats the AI as a reader, not a final authority: extracted values are validated by deterministic rules (GSTIN checksum, tax/total arithmetic, date sanity). Anything that doesn't add up is flagged for a human to review and correct before the data is exported.
+This repository implements a full-stack pipeline for extracting structured invoice data from images or PDFs. The design emphasizes reliability: extracted values are validated with deterministic checks (GSTIN checksum, tax arithmetic, totals, date sanity). Fields that fail validation are highlighted for human review.
 
-Use cases:
-- Accounts-payable teams converting paper/PDF invoices to structured records.
-- Small businesses that need reliable invoice capture from phone photos.
+Primary users:
+- Accounts-payable teams and small businesses needing accurate invoice capture from phone photos or PDFs.
 
 ---
 
 ## Tech stack
 
-- Languages: **Python** (backend), **JavaScript / React (Vite)** (frontend)
+- Languages: Python (backend), JavaScript/React (frontend)
 - Backend: FastAPI, Uvicorn, SQLAlchemy 2, Alembic
-- OCR / imaging: pytesseract (eng + tam), OpenCV (cv2), PyMuPDF
+- OCR / imaging: Tesseract (eng + tam), OpenCV, PyMuPDF
 - Frontend: React (Vite), Tailwind CSS, TanStack Query, React Hook Form
 - Database: PostgreSQL (Neon recommended)
 - DevOps: Docker, docker-compose, Render (API), Vercel (frontend)
 
 ---
 
-## Architecture overview
+## How it works
 
-```mermaid
-flowchart LR
-  Browser[Browser (React)] -->|JWT| API[FastAPI API]
-  API --> DB[(PostgreSQL)]
-  API --> Preproc[Image preprocessing: crop, resize, deskew]
-  Preproc --> OCR[Tesseract OCR or PDF text layer]
-  OCR --> LLM[LLM extraction → fixed JSON schema]
-  LLM --> Validators[Deterministic validators: GSTIN, arithmetic]
-  Validators --> DB
-  DB --> Browser
-```
-
-High-level flow:
-1. Upload image or PDF from the browser.
-2. API preprocesses images and runs OCR (Tesseract or PDF text).
-3. An LLM maps text into a fixed invoice JSON schema.
-4. Validators check GSTINs, tax arithmetic, totals, and dates. Flagged fields are annotated with reasons.
-5. The review screen shows original image and editable fields. After verification the user exports CSV.
+1. The user uploads a photo or PDF via the React SPA.
+2. The backend preprocesses images (crop, resize, deskew, shadow removal) to improve OCR.
+3. OCR is performed with Tesseract (English + Tamil) or the PDF text layer is read with PyMuPDF.
+4. An LLM maps the OCR/text into a fixed JSON invoice schema.
+5. Deterministic validators (GSTIN checksum, line-item arithmetic, tax totals, dates) check the extracted fields. Any issues are flagged with an explanation.
+6. The review UI presents the original image next to editable fields; a human verifies and saves the record.
+7. Verified data can be exported as CSV (UTF-8, Excel-ready).
 
 ---
 
@@ -91,7 +71,8 @@ backend/                      # FastAPI app and supporting files
   alembic/
   app/
     main.py                   # FastAPI app instantiation (routers & CORS)
-    routers/                  # auth.py, invoices.py
+    core/                     # configuration
+    routers/                  # auth, invoices endpoints
     services/                 # OCR, extraction, validators
     models/                   # SQLAlchemy models
     schemas/                  # Pydantic schemas
@@ -100,13 +81,15 @@ backend/                      # FastAPI app and supporting files
 eval/                         # evaluation datasets and scripts
 ```
 
-**How it fits together:** The frontend (configured with VITE_API_URL) calls the FastAPI backend for auth, uploads, and review endpoints. Uploaded files are stored on the API host by default (move to object storage for production). Validators are synchronous in-process today; for scale move them to background workers and a queue.
-
 ---
 
 ## Quick start (local)
 
-Prerequisites: Python 3.10+, Node.js (LTS), Tesseract with `eng` and `tam` language packs, PostgreSQL.
+Prerequisites:
+- Python 3.10+
+- Node.js (LTS)
+- Tesseract installed with `eng` and `tam` language packs
+- PostgreSQL (or a managed Postgres instance)
 
 Backend:
 
@@ -114,7 +97,7 @@ Backend:
 cd backend
 python -m venv .venv && source .venv/bin/activate    # Windows: .venv\Scripts\Activate.ps1
 pip install -r requirements.txt
-cp .env.example .env        # set DATABASE_URL, SECRET_KEY, LLM credentials
+cp .env.example .env        # set DATABASE_URL, SECRET_KEY, CORS_ORIGINS, and LLM credentials if used
 alembic upgrade head
 uvicorn app.main:app --reload
 # API docs: http://localhost:8000/docs
@@ -134,56 +117,57 @@ npm run dev
 
 ## Docker / Compose
 
-Run everything with Docker Compose from the repository root:
+Run both services with Docker Compose from the repository root:
 
 ```bash
 docker compose up --build
-# API on :8000, frontend on :8080 (check docker-compose.yml for exact ports)
+# API typically on :8000, frontend on :8080 (check docker-compose.yml for exact ports)
 ```
 
 ---
 
 ## Deployment (Render + Vercel + Neon)
 
-- Create a PostgreSQL database on Neon and copy its connection string. Ensure the SQLAlchemy scheme (postgresql+psycopg://) is used if required.
-- In Render, create a service from this repository and apply `render.yaml`. Set `DATABASE_URL` to the Neon URL and `CORS_ORIGINS` to the Vercel frontend origin.
-- In Vercel, import this repo and set the project root to `frontend`. Set `VITE_API_URL` to the Render API origin.
-- After deployment, check API `/health` and test upload → OCR → review → export flows.
+1. Create a PostgreSQL database on Neon and copy its connection string.
+2. In Render, create a service and apply `render.yaml`. Set `DATABASE_URL` to the Neon connection string and `CORS_ORIGINS` to the frontend origin.
+3. In Vercel, import the repo and set the project root to `frontend`. Set `VITE_API_URL` to the Render API origin.
+4. After deployment, verify the API `/health` endpoint and end-to-end flows (signup/login, upload, OCR, review, export).
 
-Notes: the Render disk preserves uploaded files only on that instance. Use S3-compatible storage to support multi-instance scaling and durable uploads.
+Notes: uploaded files are stored on the API instance disk by default. For durability and multi-instance scaling, configure S3-compatible object storage and update upload handling.
 
 ---
 
-## Environment variables (important)
+## Environment variables
 
-Backend (.env):
-- DATABASE_URL — SQLAlchemy-style DB URL (e.g. postgresql+psycopg://user:pass@host/dbname)
+Set these in `backend/.env` (copy from `.env.example`):
+
+- DATABASE_URL — SQLAlchemy-style DB URL (e.g. `postgresql+psycopg://user:pass@host/dbname`)
 - SECRET_KEY — application secret
-- CORS_ORIGINS — frontend origin(s)
-- LLM / OpenAI credentials — provider-specific environment variables
+- CORS_ORIGINS — comma-separated frontend origin(s) (e.g. `http://localhost:5173,https://your-frontend.vercel.app`)
+- LLM_BASE_URL, LLM_API_KEY, LLM_MODEL — set if using an external LLM provider
 
-Frontend (.env):
+Frontend `.env` variables:
 - VITE_API_URL — backend origin used by the SPA
 
 ---
 
 ## Testing & evaluation
 
-- Backend tests:
+Backend tests:
 
 ```bash
 cd backend
 python -m pytest -q
 ```
 
-- Frontend tests:
+Frontend tests:
 
 ```bash
 cd frontend
 npm test
 ```
 
-- Evaluation scripts (end-to-end and validator stress tests):
+Evaluation scripts (end-to-end and validator stress tests):
 
 ```bash
 cd backend
@@ -195,19 +179,19 @@ python -m scripts.validator_stress
 
 ## Operational notes & security
 
-- Do not commit `.env` or production credentials. Rotate secrets if exposed.
-- Uploaded files are stored on the API instance disk by default and will be lost when the instance restarts; migrate to S3 or compatible object storage for production.
-- Tokens are currently in `localStorage`; consider httpOnly cookies for stronger XSS protection.
-- Move long-running or heavy workloads (OCR, LLM calls) to background workers with queues for scalability and reliability.
+- Never commit `.env` or production credentials. Rotate credentials if exposed.
+- Uploaded files stored on the API host are ephemeral across deploys/restarts. Use object storage for production.
+- Tokens are stored in `localStorage` by default; consider httpOnly cookies for stronger protection against XSS.
+- For scale and reliability, move OCR/LLM work to background workers with a job queue and retries.
 
 ---
 
 ## Troubleshooting
 
-- Slow first request in free hosting: the backend may sleep; first wake can take ~1 minute.
-- OCR accuracy issues: ensure Tesseract `eng` and `tam` data are installed, and tune preprocessing (crop, resize, deskew).
-- Validation errors: inspect the OCR text and LLM extraction; missing decimal points or misread digits are common causes.
-- DB connection failures: confirm `DATABASE_URL` scheme and credentials.
+- Slow first request on free hosting: the backend may be asleep; the first request can take up to a minute.
+- OCR issues: ensure Tesseract `eng` and `tam` language packs are installed and validate preprocessing parameters.
+- Validation flags: inspect OCR output and LLM-provided JSON when arithmetic or decimal issues appear.
+- DB connection errors: confirm `DATABASE_URL` uses the correct SQLAlchemy scheme and credentials.
 
 ---
 
@@ -215,16 +199,16 @@ python -m scripts.validator_stress
 
 - Add backend logic under `backend/app/services`, API endpoints under `backend/app/routers`, and Pydantic schema changes under `backend/app/schemas`.
 - Add Alembic migrations for DB schema changes.
-- Run tests locally before opening PRs.
+- Run tests locally before opening PRs; CI will run both backend and frontend tests.
 
 ---
 
 ## License & contact
 
-If this repository does not include a LICENSE file, add one before using this code broadly. Recommended: MIT or Apache-2.0.
+If this repository does not include a LICENSE file, add one before using the code broadly. Common choices: MIT or Apache-2.0.
 
-For questions, open an issue or check the commit history and frontend demo illustrations.
+For questions, open an issue or check the commit history and frontend documentation.
 
 ---
 
-*This README was updated to improve clarity and styling. Replace placeholder demo links and badges with your production URLs and badges as appropriate.*
+This README has been proofread and updated to remove obvious errors and placeholders. Replace demo links and badges with your production URLs if desired.
